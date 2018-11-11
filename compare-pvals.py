@@ -28,7 +28,7 @@ def get_jax2rsid(args):
 def parse_sql(args, rsid2jax):
 	sql_phenos = {}
 	with(open(args.qtls, 'r')) as infile:
-		infile.readline() ; infile.readline()  # skip headers
+		infile.readline() #; infile.readline()  # skip headers
 		for line in infile:
 			splits = line.split()
 			rsid, pval = splits[2], float(splits[-3])
@@ -131,4 +131,3 @@ def main():
 if __name__ == '__main__':
 	main()
 #
-
