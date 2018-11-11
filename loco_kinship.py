@@ -5,6 +5,8 @@ if len(sys.argv) != 4:
 	print('Given plink tped/tfam/map files, generates LOCO tpeds/maps and kinship matrices.')
 	sys.exit()
 plink_basename, outdir, pylmmKinship = sys.argv[1:]
+if plink_basename.endswith('.'):
+	plink_basename = plink_basename[:-1]
 tpedname, tfamfile, mapname = plink_basename+'.tped', plink_basename+'.tfam', plink_basename+'.map'
 
 # figure out number of chromosomes in tped file
@@ -56,4 +58,3 @@ for i in range(num_chroms):
 	print('Running pylmm on ' + loco_fnames[i])
 	subprocess.Popen(['python', pylmmKinship, '--tfile', loco_fnames[i],  loco_fnames[i] + '.kin']).wait()
 #
-
