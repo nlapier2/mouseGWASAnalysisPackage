@@ -6,7 +6,7 @@ def parseargs():    # handle user arguments
 				" get into proper format for pylmm.")
 	parser.add_argument('clinical', help = 'Clinical trait tsv file.')
 	parser.add_argument('--all_strains',
-		default = '/u/home/n/nlapier2/all_strains.tped',
+		default = '/u/home/n/nlapier2/mousedata/all_strains.tped',
 		help= 'Location of all_strains.tped file. Default is a known location.')
 	parser.add_argument('--no_sex_chromosomes', action='store_true',
 		help = 'Ignore sex chromosomes.')
@@ -16,9 +16,13 @@ def parseargs():    # handle user arguments
 	return args
 
 
-# Extract fid (family ID == mouse Strain) and iid (individual ID = mouse_number)
-#  	from clinical traits file
 def get_fid_iid(args):
+	"""
+	Extract fid (family ID == mouse Strain) & iid (individual ID = mouse_number)
+	  	from clinical traits file.
+	Argument: args are the user arguments parsed from argparse.
+	Returns: fid_iid, the strain / mouse number pairs from clinical traits file.
+	"""
 	# grab all strains in all_strains.tped; we ignore strains in the clinical
 	#  	traits file that aren't in all_strains.tped because we don't have
 	#  	genotype info for them
@@ -41,6 +45,13 @@ def get_fid_iid(args):
 
 
 def write_tfam(fid_iid):
+	"""
+	Given the mouse strains (fid) and individual numbers (iid), write out a
+	  	plink-format tfam file. In this case we don't specify the other tfam
+		fields, so this is mostly just writing out the mice in the study.
+	For more information on tfam files, see plink documentation online.
+	Argument: fid_iid specifies mouse strains and numbers in this study.
+	"""
 	other_cols = '\t0\t0\t0\t-9\n'  # father/mother/sex/pheno unspecified
 	with(open('TEMP.tfam', 'w')) as outfile:
 		for pair in fid_iid:  # pair is [fid, iid] of a mouse
@@ -48,6 +59,14 @@ def write_tfam(fid_iid):
 
 
 def write_tped(args, fid_iid):
+	"""
+	Writes plink-formatted tped file, which maps each SNP to genotype info for
+	  	the mice in this study at that SNP.
+	For more information on tped files, see plink documentation online.
+	Arguments:
+	-- args are the user arguments parsed from argparse.
+	-- fid_iid contains the mouse strains (fids) & numbers (iid) in this study.
+	"""
 	with(open(args.all_strains, 'r')) as genofile:
 		with(open('TEMP.tped', 'w')) as outfile:
 			# all_strains.tped has the genotype for each SNP for each strain.
@@ -66,9 +85,11 @@ def write_tped(args, fid_iid):
 					'\t'.join(genos) + '\n')
 
 
-# A python implementation of Calvin's get_genotypes_from_tped.R script
-# Essentially grabs genotype info for mice in a study & puts in plink format
 def get_genotypes(args):
+	"""
+	Grabs genotype info for mice in a study & puts it in plink format.
+	Argument: args are the user arguments parsed from argparse.
+	"""
 	# extract family and mouse IDs from clinical trait file, write tfam & tped
 	fid_iid = get_fid_iid(args)
 	write_tfam(fid_iid)
