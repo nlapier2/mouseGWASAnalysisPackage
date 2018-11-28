@@ -1,59 +1,66 @@
 import argparse, math, sys
-import numpy as np
-
 
 def parseargs():    # handle user arguments
 	parser = argparse.ArgumentParser(description="Given phenotype file," +
 				" get into proper format for pylmm.")
-	parser.add_argument('input', help = 'Name of existing pheno file.')
-	parser.add_argument('output', help = 'Name of output file.')
+	parser.add_argument('--clinical', required = True,
+		help = 'Name of existing pheno file.')
+	parser.add_argument('--target', required=True,
+		help = 'EXACT name of target trait to study.')
+	parser.add_argument('--tfam', required=True,
+		help = 'Optionally provide a tfam file & exclude mice not in it.')
+	parser.add_argument('--output', default='pheno_file_pylmm.txt',
+		help = 'Name of output file.')
 	parser.add_argument('--no_normalization', action='store_true',
 		help = 'Do not normalize target phenotype.')
-	parser.add_argument('--regress', action='store_true',
-		help = 'Use this to regress target phenotype on other phenotypes.')
-	parser.add_argument('--target', type=int, default=3,
-		help = 'Column number of target phenotype.')
-	parser.add_argument('--tfam', default='NONE',
-		help = 'Optionally provide a tfam file & exclude mice not in it.')
+	#parser.add_argument('--regress', action='store_true',
+	#	help = 'Use this to regress target phenotype on other phenotypes.')
 	args = parser.parse_args()
 	return args
 
 
 def parse_tfam(args):
+	"""
+	Reads the mice for this study from a tfam file. Used to ensure that mice
+	  	that were excluded from analysis are also excluded from the pheno file.
+	Argument: args are the user arguments parsed with argparse.
+	Returns: tfams dict that maps strain to mouse number
+	"""
+	tfams = {}
 	if args.tfam != 'NONE':
-		tfams = {}
 		with(open(args.tfam, 'r')) as tfamfile:
 			for line in tfamfile:
-				splits = line.split(' ')
+				splits = line.split(' ')  # splits[0, 1] == [strain, number]
 				if splits[0] not in tfams:
 					tfams[splits[0]] = [splits[1]]
 				else:
 					tfams[splits[0]].append(splits[1])
-	else:
-		tfams = None
 	return tfams
 
 
-def parse_input_file(args, tfams=None):
+def parse_clinical_file(args, tfams):
+	"""
+	Given a target phenotype, read the values for that phenotype.
+	Arguments:
+	-- args are the user arguments parsed with argparse
+	-- tfams are the strain to mouse number mappings from the tfam file
+	Returns:
+	-- mouse2pheno: maps mouse to the value of the target phenotype and the
+	  	the non-target phenos (other), which can be corrected for
+	-- target_pheno: just the raw target phenotype values
+	-- other_phenos: just the raw non-target (other) phenotype values
+	"""
 	mouse2pheno, target_pheno, other_phenos = [], [], []
-	with(open(args.input, 'r')) as infile:
-		infile.readline() ; infile.readline()  # skip header lines
+	with(open(args.clinical, 'r')) as infile:
+		infile.readline()  # skip header line
 		for line in infile:
-			splits = line.split('  ')
-			splits = [i.strip().replace(' ', '_') for i in splits if len(i) > 0]
+			splits = line.split('\t')
 			if len(splits) < 2:
 				break
-			splits[1] = splits[1].replace('/', '.')  # for plink
-			if tfams != None and (splits[1] not in tfams or splits[0] not in tfams[splits[1]]):
+			if splits[1] not in tfams or splits[0] not in tfams[splits[1]]:
 				continue  # this mouse not present in the tfam file
 			mouse_fid_iid = splits[1] + ' ' + splits[0]  # family & indiv. ID
-			try:  # target phenotype must be number
-				tgt = float(splits[args.target])
-			except:
-				print('Could not read all target phenotypes as floats.')
-				print(target_pheno)
-				print(splits[args.target])
-				sys.exit()
+			tgt = float(splits[args.target])
 			others = splits[2 : args.target] + splits[args.target + 1 : ]
 			mouse2pheno.append([mouse_fid_iid, tgt, others])
 			target_pheno.append(tgt)
@@ -61,31 +68,47 @@ def parse_input_file(args, tfams=None):
 	return mouse2pheno, target_pheno, other_phenos
 
 
-def regress_pheno(args, target_pheno, other_phenos):
-	return target_pheno
+# NOT YET IMPLEMENTED
+#def regress_pheno(args, target_pheno, other_phenos):
+#	return target_pheno
 
 
 def normalize_and_write(args, mouse2pheno, target_pheno):
-	# normalize via subtracting mean then dividing by standard deviation
+	"""
+	Normalize target phenotype values by subtracting mean and dividing by
+	  	standard deviation, then write reults in pylmm format to args.output
+	Arguments:
+	-- mouse2pheno: maps mouse to the value of the target phenotype and the
+	  	the non-target phenos (other), which can be corrected for
+	-- target_pheno: just the raw target phenotype values
+	-- other_phenos: just the raw non-target (other) phenotype values
+	"""
 	if not args.no_normalization:
-		mean, sd = np.mean(target_pheno), math.sqrt(np.var(target_pheno))
+		# calculate mean and standard deviation of target phenotype values
+		mean = sum(target_pheno) / float(len(target_pheno))
+		sq_diffs = [(i - mean)**2 for i in target_pheno]
+		sample_sd = math.sqrt(sum(sq_diffs) / float(len(target_pheno) - 1))
+		# normalize target phenotypes, stored in mouse2pheno[i][1]
 		for i in range(len(mouse2pheno)):
-			mouse2pheno[i][1] = ((mouse2pheno[i][1] - mean) / sd)
+			mouse2pheno[i][1] = ((mouse2pheno[i][1] - mean) / sample_sd)
+
 	with(open(args.output, 'w')) as outfile:
 		for m in mouse2pheno:
+			# m[0] is mouse strain and number, m[1] is target phenotype value
 			outfile.write(m[0] + ' ' + str(m[1]) + '\n')
 
 
 def main():
-	args = parseargs()
-	tfams = parse_tfam(args)
-	mouse2pheno, target_pheno, other_phenos = parse_input_file(args, tfams)
-	if args.regress:
-		target_pheno = regress_pheno(args, target_pheno, other_phenos)
+	args = parseargs()  # handle user arguments
+	tfams = parse_tfam(args)  # read mice in this study from tfam file
+	# read the phenotype values from the clinical trait file
+	mouse2pheno, target_pheno, other_phenos = parse_clinical_file(args, tfams)
+	#if args.regress:
+	#	target_pheno = regress_pheno(args, target_pheno, other_phenos)
+	# normalize phenotype values and write to args.output
 	normalize_and_write(args, mouse2pheno, target_pheno)
 
 
 if __name__ == '__main__':
 	main()
 #
-

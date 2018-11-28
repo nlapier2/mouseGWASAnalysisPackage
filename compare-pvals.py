@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 def parseargs():    # handle user arguments
-	parser = argparse.ArgumentParser(description="Compare pvals," +
+	parser = argparse.ArgumentParser(description="Compare pvals" +
 				" from pylmm with those from sql database.")
 	parser.add_argument('--pylmm', required = True, help = 'pylmm pheno file.')
 	parser.add_argument('--qtls', required = True,

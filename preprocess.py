@@ -8,8 +8,7 @@ def parseargs():    # handle user arguments
 	parser.add_argument('--qtls', default = 'NONE',
 		help = 'Clinitical QTLs tsv file.')  # DEPRECATED
 	parser.add_argument('--outname', default='AUTO', help = 'Output file name.')
-	parser.add_argument('--pheno_map',
-		default = '/u/home/n/nlapier2/mousedata/all_strains.tped',
+	parser.add_argument('--pheno_map', default = 'pheno_map.txt',
 		help = 'Specify phenotype map file to read. Default to known location.')
 	args = parser.parse_args()
 	return args
