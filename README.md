@@ -54,7 +54,9 @@ The following section describes each script in more detail. For documentation of
 Overview: This script preprocesses a given clinical traits file, and should always be run upon downloading such a file from the SQL server. This file must be tab-delimited (see the wiki for more information). The main idea is that phenotype and strain names will be standardized between all studies. This is done by reading in a manually curated mapping file (which we call pheno_map here) that maps names seen in the clinical trait files to the names we want to have. Some other minor tweaks are made. The output is a new clinical_traits file with all these tweaks and substitutions. This script is not considered "analysis" and is thus not included in the submit-pylmm-analysis.sh or simple-analysis.py wrapper scripts.
 
 Example:
-`python preprocessing.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv`
+```
+python preprocessing.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv
+```
 
 Arguments:
 * (REQUIRED) --clinical: Clinitical trait tsv file.
@@ -90,7 +92,9 @@ Arguments (in this case, not command line arguments, but variables to modify in 
 Overview: This script is made to be a very simple wrapper to run the GWAS analysis steps in get_genotypes_and_plink.py, make_pheno_file.py, loco_kinship.py, and run_pylmm_loco.py. This script may be useful for users who are uncomfortable with editing files from the command line, which is necessary for running the submit-pylmm-analysis.sh script. However, users who are comfortable editing files should use the shell script for more flexibility.
 
 Example:
-`python simple-analysis.py --clinical /my/out/dir/preprocessed_clinical_traits_chow2.tsv --trait_name Fat_mass --output_dir /my/out/dir/`
+```
+python simple-analysis.py --clinical /my/out/dir/preprocessed_clinical_traits_chow2.tsv --trait_name Fat_mass --output_dir /my/out/dir/
+```
 
 Arguments:
 * (REQUIRED) --clinical: Clinitical trait tsv file.
@@ -103,7 +107,9 @@ Arguments:
 Overview: This script takes the mice from a specified clinical traits file and matches them to their genotype information using a file called all_strains.tped. This information is then output in plink format, and then plink is used to recode alleles into the numbers 1 and 2, for GWAS analysis purposes. This is the first step of analysis, and importantly involves the decision of whether to include sex chromosomes or not.
 
 Example: 
-`python get_genotypes_and_plink.py --clinical /path/to/my/clinical_traits_chow2.tsv --plink_basename /my/out/dir/plink12`
+```
+python get_genotypes_and_plink.py --clinical /path/to/my/clinical_traits_chow2.tsv --plink_basename /my/out/dir/plink12
+```
 
 Arguments:
 * (REQUIRED) --clinical: Clinical trait tsv file.
@@ -117,7 +123,9 @@ Arguments:
 Overview: This script makes a phenotype file in pylmm format, which pylmm then uses to read in the phenotype values for each mouse for GWAS analysis. Essentially, we are simply extracting relevant information from the clinical traits file. One of the plink files called a tfam is required input, as it specifies which mice are present and genotyped for this study. This script also normalizes phenotypes by subtracting their mean and dividing by their standard deviation. This can be turned off, but generally shouldn't be. Eventually this script will allow the user to specify covariates to regress out, but we currently do not have that option implemented.
 
 Example:
-`python make_pheno_file.py --clinical /path/to/my/clinical_traits_chow2.tsv --target Fat_mass --tfam /my/out/dir/plink12.tfam --output /my/out/dir/pheno_file_pylmm.txt`
+```
+python make_pheno_file.py --clinical /path/to/my/clinical_traits_chow2.tsv --target Fat_mass --tfam /my/out/dir/plink12.tfam --output /my/out/dir/pheno_file_pylmm.txt
+```
 
 Arguments:
 * (REQUIRED) --clinical: Name of existing pheno file.
@@ -131,7 +139,9 @@ Arguments:
 Overview: This script generates leave one chromosome out (LOCO) kinship matrices via pylmm; pylmm by itself doesn't have the LOCO option. The kinship matrix measures the genetic relatedness between mice in the study and is a critical component of GWAS analysis. In general, the kinship matrix is computed by comparing all SNPs between all mice. In LOCO analysis, a kinship matrix is generated for each chromosome, where that kinship matrix only looks at the SNPs NOT in that chromosome. This helps avoid decreased power due to linkage disequilibrium effects. We also generate files containing the chromosome excluded from each kinship matrix; these are used for the pylmmGWAS analysis.
 
 Example:
-`python loco_kinship.py --plink /my/out/dir/plink12 --outdir /my/out/dir/loco/`
+```
+python loco_kinship.py --plink /my/out/dir/plink12 --outdir /my/out/dir/loco/
+```
 
 Arguments:
 * (REQUIRED) --plink: Base name of plink files.
@@ -143,7 +153,9 @@ Arguments:
 Overview: This script runs pylmm LOCO analysis; that is, pylmmGWAS is run on the SNPs in in each chromosome using as input the kinship matrix with that chromosome left out. This helps avoid decreased power due to linkage disequilibrium effects. Results for each chromosome are then aggregated into a single file.
 
 Example:
-`python run_pylmm_loco.py --loco_dir /my/out/dir/loco/ --pheno_file /my/out/dir/pheno_file_pylmm.txt --outfile /my/out/dir/pylmm_gwas_results.txt`
+```
+python run_pylmm_loco.py --loco_dir /my/out/dir/loco/ --pheno_file /my/out/dir/pheno_file_pylmm.txt --outfile /my/out/dir/pylmm_gwas_results.txt
+```
 
 Arguments:
 * (REQUIRED) --loco_dir: Directory of LOCO files to run pylmmGWAS.py on.
@@ -158,7 +170,9 @@ Not part of the analysis pipeline. Do not run this unless you know what you are 
 Overview: Compares p-values between SQL QTL file and pylmm results. Shows corerlations and significant hits, and makes some plots.
 
 Example: 
-`python compare-pvals.py --pylmm /my/out/dir/pylmm_gwas_results.txt --qtls /path/to/my/clinical_QTL_chow2.tsv --trait_name Fat_mass`
+```
+python compare-pvals.py --pylmm /my/out/dir/pylmm_gwas_results.txt --qtls /path/to/my/clinical_QTL_chow2.tsv --trait_name Fat_mass
+```
 
 Arguments:
 * (REQUIRED) --pylmm: pylmm pheno file.
