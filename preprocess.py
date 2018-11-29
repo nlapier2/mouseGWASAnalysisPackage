@@ -19,7 +19,8 @@ import argparse, glob, subprocess, sys
 def parseargs():    # handle user arguments
 	parser = argparse.ArgumentParser(description="Prepare SQL clincal trait" +
 				" and QTL files for further processing and pylmm analysis.")
-	parser.add_argument('traits', help = 'Clinitical trait tsv file.')
+	parser.add_argument('--traits', required = True,
+		help = 'Clinitical trait tsv file.')
 	parser.add_argument('--qtls', default = 'NONE',
 		help = 'Clinitical QTLs tsv file.')  # DEPRECATED
 	parser.add_argument('--outname', default='AUTO', help = 'Output file name.')
