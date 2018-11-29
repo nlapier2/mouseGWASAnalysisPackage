@@ -1,3 +1,11 @@
+"""
+This script runs pylmm LOCO analysis; that is, pylmmGWAS is run on the SNPs in
+	in each chromosome using as input the kinship matrix with that chromosome
+	left out. This helps avoid decreased power due to linkage disequilibrium
+	effects. Results for each chromosome are then aggregated into a single file.
+"""
+
+
 import argparse, os, subprocess, sys
 
 
@@ -9,7 +17,7 @@ def parseargs():    # handle user arguments
 	parser.add_argument('--pheno_file', required = True,
 		help = 'Phenotype file in pylmm format.')
 	parser.add_argument('--outfile', default='AUTO',
-		help = 'Name of output directory for LOCO and kinship files.')
+		help = 'Name of final pylmm results file.')
 	parser.add_argument('--pylmm',
 		default = '/u/home/n/nlapier2/mousedata/pylmm/scripts/pylmmGWAS.py',
 		help = 'Executable path to pylmmGWAS.py. Default is known location.')

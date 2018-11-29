@@ -1,3 +1,18 @@
+"""
+This script preprocesses a given clinical traits file, and should always be run
+  	upon downloading such a file from the SQL server. This file must be
+	tab-delimited (see the wiki for more information).
+The main idea is that phenotype and strain names will be standardized between
+	all studies. This is done by reading in a manually curated mapping file
+	(which we call pheno_map here) that maps names seen in the clinical trait
+	files to the names we want to have.
+Some other minor tweaks are made. The output is a new clinical_traits file with
+  	all these tweaks and substitutions.
+This script is not considered "analysis" and is thus not included in the
+  	submit-pylmm-analysis.sh or simple-analysis.py wrapper scripts.
+"""
+
+
 import argparse, glob, subprocess, sys
 
 
@@ -74,6 +89,9 @@ def preprocess_traits(args, pheno_map):
 				if len(splits) < 2:  # trailing line at end of file
 					break
 				#splits[straincol] = splits[straincol].replace('/', '.')
+				# replace strain name using pheno_map, if necessary
+				if splits[straincol] in pheno_map:
+					splits[straincol] = pheno_map[splits[straincol]]
 				for i in range(len(splits)):  # replace NULL with NA, for R
 					if splits[i] == 'NULL':
 						splits[i] = 'NA'

@@ -1,3 +1,13 @@
+"""
+This script takes the mice from a specified clinical traits file and matches
+  	them to their genotype information using a file called all_strains.tped.
+This information is then output in plink format, and then plink is used to
+  	recode alleles into the numbers 1 and 2, for GWAS analysis purposes.
+This is the first step of analysis, and importantly involves the decision of
+  	whether to include sex chromosomes or not.
+"""
+
+
 import argparse, glob, subprocess, sys
 
 
@@ -109,8 +119,8 @@ def main():
 	get_genotypes(args)  # get genotypes for mice, format in plink format
 
 	# load the plink module
-	loader = '. /u/local/Modules/default/init/modules.sh && module load plink'
-	subprocess.Popen(['bash', '-c', loader]).wait()
+	# loader = '. /u/local/Modules/default/init/modules.sh && module load plink'
+	# subprocess.Popen(['bash', '-c', loader]).wait()
 
 	# now recode (reformat) the tfam & tped files using plink
 	subprocess.Popen(['plink', '--mouse', '--recode', '12', '--transpose',

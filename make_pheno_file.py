@@ -1,3 +1,16 @@
+"""
+This script makes a phenotype file in pylmm format, which pylmm then uses to
+  	read in the phenotype values for each mouse for GWAS analysis. Essentially,
+	we are simply extracting relevant information from the clinical traits file.
+One of the plink files called a tfam is required input, as it specifies which
+  	mice are present and genotyped for this study.
+This script also normalizes phenotypes by subtracting their mean and dividing by
+  	their standard deviation. This can be turned off, but generally shouldn't
+	be. Eventually this script will allow the user to specify covariates to
+	regress out, but we currently do not have that option implemented.
+"""
+
+
 import argparse, math, sys
 
 def parseargs():    # handle user arguments

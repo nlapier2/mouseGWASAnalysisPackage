@@ -1,3 +1,17 @@
+"""
+This script generates leave one chromosome out (LOCO) kinship matrices via
+	pylmm; pylmm by itself doesn't have the LOCO option. The kinship matrix
+  	measures the genetic relatedness between mice in the study and is a critical
+	component of GWAS analysis.
+In general, the kinship matrix is computed by comparing all SNPs between all
+  	mice. In LOCO analysis, a kinship matrix is generated for each chromosome,
+	where that kinship matrix only looks at the SNPs NOT in that chromosome.
+	This helps avoid decreased power due to linkage disequilibrium effects.
+We also generate files containing the chromosome excluded from each kinship
+  	matrix; these are used for the pylmmGWAS analysis.
+"""
+
+
 import argparse, os, subprocess, sys
 
 
