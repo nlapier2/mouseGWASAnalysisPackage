@@ -15,7 +15,7 @@ import argparse, subprocess
 # Here we define some set blocks of the shell script to run that are not
 #  	dependent on user input.
 
-SET_BLOCK_1 = "#!/bin/sh\n"+
+SET_BLOCK_1 = ["#!/bin/sh\n"+
 "#$ -S /bin/bash\n"+
 "#$ -N pylmm_analysis_qsub_job\n"+
 "#$ -cwd\n"+
@@ -23,9 +23,9 @@ SET_BLOCK_1 = "#!/bin/sh\n"+
 "#$ -l h_data=10G,h_rt=24:00:00\n"+
 ". /u/local/Modules/default/init/modules.sh\n"+
 "module load R\n"+
-"module load plink\n"
+"module load plink\n"]
 
-SET_BLOCK_2 = "all_strains='/u/home/n/nlapier2/mousedata/all_strains.tped'\n"+
+SET_BLOCK_2 = ["all_strains='/u/home/n/nlapier2/mousedata/all_strains.tped'\n"+
 "plink_basename=$output_directory+'plink12'\n"+
 "pheno_file_name=$output_directory+'pheno_file_pylmm.txt'\n"+
 "no_normalization=1\n"+
@@ -54,13 +54,13 @@ SET_BLOCK_2 = "all_strains='/u/home/n/nlapier2/mousedata/all_strains.tped'\n"+
 "python loco_kinship.py --plink $plink_basename --outdir $loco_outdir \\\n"+
 "\t--pylmm $pylmmKinship\n"+
 "python run_pylmm_loco.py --loco_dir $loco_outdir --pheno_file $pheno_file_name \\\n"+
-"\t--pylmm $pylmmGWAS --outfile $gwas_outfile\n"
+"\t--pylmm $pylmmGWAS --outfile $gwas_outfile\n"]
 
 
 def parseargs():    # handle user arguments
 	parser = argparse.ArgumentParser(description="Run a simple Pylmm GWAS" +
 				" leave-one-chromosome-out analysis.")
-	parser.add_argument('--clinical_traits', required = True,
+	parser.add_argument('--clinical', required = True,
 		help = 'Clinitical trait tsv file.')
 	parser.add_argument('--trait_name', required = True,
 		help = 'EXACT name of the trait to study.')
@@ -79,13 +79,13 @@ def write_qsub_script(args):
 	Argument: args are the user arguments parsed from argparse.
 	"""
 	with(open('TEMP-QSUB-SCRIPT', 'w')) as outfile:
-		outfile.write(SET_BLOCK_1)  # predifined parts of script
-		outfile.write("clinical_traits='" + args.clinical_traits + "'\n")
+		outfile.write(SET_BLOCK_1[0])  # predifined parts of script
+		outfile.write("clinical_traits='" + args.clinical + "'\n")
 		outfile.write("trait_name='" + args.trait_name + "'\n")
 		outfile.write("output_directory='" + args.output_dir + "'\n")
 		outfile.write("include_sex_chromosomes='" +
 			args.include_sex_chromosomes + "'\n")
-		outfile.write(SET_BLOCK_2)  # predifined parts of script
+		outfile.write(SET_BLOCK_2[0])  # predifined parts of script
 
 
 def main():

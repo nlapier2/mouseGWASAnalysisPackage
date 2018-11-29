@@ -19,7 +19,7 @@ import argparse, glob, subprocess, sys
 def parseargs():    # handle user arguments
 	parser = argparse.ArgumentParser(description="Prepare SQL clincal trait" +
 				" and QTL files for further processing and pylmm analysis.")
-	parser.add_argument('--traits', required = True,
+	parser.add_argument('--clinical', required = True,
 		help = 'Clinitical trait tsv file.')
 	parser.add_argument('--qtls', default = 'NONE',
 		help = 'Clinitical QTLs tsv file.')  # DEPRECATED
@@ -53,17 +53,17 @@ def read_pheno_map(mapfile):
 
 def check_trait_QTL_arg_order(args):
 	"""
-	A simple method that checks whether the args.traits and args.qtls user
+	A simple method that checks whether the args.clinical and args.qtls user
 	  	arguments are in the correct order.
 	Argument: args are the user arguments parsed from argparse.
-	Returns: the strings that will be the final args.traits and args.qtls
+	Returns: the strings that will be the final args.clinical and args.qtls
 	"""
-	with(open(args.traits, 'r')) as infile:
+	with(open(args.clinical, 'r')) as infile:
 		# check if user accidentally switched QTL and traits arguments
 		if 'pvalue' in infile.readline():  # pvalue field only in QTLs file
-			return args.qtls, args.traits  #user specified wrong order so switch
+			return args.qtls, args.clinical  # switched order
 		else:
-			return args.traits, args.qtls  # don't switch
+			return args.clinical, args.qtls  # don't switch
 
 
 def preprocess_traits(args, pheno_map):
@@ -74,7 +74,7 @@ def preprocess_traits(args, pheno_map):
 	-- args: the user arguments parsed by parseargs
 	-- pheno_map: the phenotype map read in by the read_pheno_map method.
 	"""
-	with(open(args.traits, 'r')) as traitfile:
+	with(open(args.clinical, 'r')) as traitfile:
 		header = traitfile.readline().strip().split('\t')
 		# remove leading non-ascii characters, replace col names using pheno_map
 		header[0] = ''.join([ch for ch in header[0] if ord(ch) < 128])
@@ -159,8 +159,8 @@ def main():
 	args = parseargs()
 	if args.outname == 'AUTO':
 		args.outname = 'preprocessed_clinical_traits.tsv'
-	# ensure args.traits and args.qtls were specified in correct order
-	args.traits, args.qtls = check_trait_QTL_arg_order(args)
+	# ensure args.clinical and args.qtls were specified in correct order
+	args.clinical, args.qtls = check_trait_QTL_arg_order(args)
 
 	# Reads in a phenotype mapping file, uses this to replace phenotype names
 	#  	in the clincal traits file.

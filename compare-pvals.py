@@ -1,3 +1,9 @@
+"""
+Compares p-values between SQL QTL file and pylmm results. Shows corerlations
+  	and significant hits, and makes some plots.
+"""
+
+
 import argparse
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
