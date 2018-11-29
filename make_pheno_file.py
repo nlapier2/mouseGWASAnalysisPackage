@@ -21,7 +21,7 @@ def parseargs():    # handle user arguments
 	parser.add_argument('--target', required=True,
 		help = 'EXACT name of target trait to study.')
 	parser.add_argument('--tfam', required=True,
-		help = 'Optionally provide a tfam file & exclude mice not in it.')
+		help = 'Plink tfam file; exclude mice not in it.')
 	parser.add_argument('--output', default='pheno_file_pylmm.txt',
 		help = 'Name of output file.')
 	parser.add_argument('--no_normalization', action='store_true',
