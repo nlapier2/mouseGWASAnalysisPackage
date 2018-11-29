@@ -14,7 +14,8 @@ import argparse, glob, subprocess, sys
 def parseargs():    # handle user arguments
 	parser = argparse.ArgumentParser(description="Given phenotype file," +
 				" get into proper format for pylmm.")
-	parser.add_argument('clinical', help = 'Clinical trait tsv file.')
+	parser.add_argument('--clinical', required = True,
+		help = 'Clinical trait tsv file.')
 	parser.add_argument('--all_strains',
 		default = '/u/home/n/nlapier2/mousedata/all_strains.tped',
 		help= 'Location of all_strains.tped file. Default is a known location.')
