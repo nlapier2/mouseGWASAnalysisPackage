@@ -22,7 +22,7 @@ The following section describes each script in more detail. For documentation of
 
 ### Script Details
 
-##### preprocessing.py
+#### preprocessing.py
 
 Overview: This script preprocesses a given clinical traits file, and should always be run upon downloading such a file from the SQL server. This file must be tab-delimited (see the wiki for more information). The main idea is that phenotype and strain names will be standardized between all studies. This is done by reading in a manually curated mapping file (which we call pheno_map here) that maps names seen in the clinical trait files to the names we want to have. Some other minor tweaks are made. The output is a new clinical_traits file with all these tweaks and substitutions. This script is not considered "analysis" and is thus not included in the submit-pylmm-analysis.sh or simple-analysis.py wrapper scripts.
 
@@ -32,7 +32,7 @@ Arguments:
 * --outname: Output file name.
 * --pheno_map: Specify phenotype map file to read. Default to known location.
 
-##### submit-pylmm-analysis.sh
+#### submit-pylmm-analysis.sh
 
 Overview: This script is a wrapper for all pylmm analysis scripts, i.e. get_genotypes_and_plink.py, make_pheno_file.py, loco_kinship.py, and run_pylmm_loco.py. There are a few options you should set for every new analysis you perform, namely clinical_traits, trait_name, output_directory, and include_sex_chromosomes. There are many other options that you can usually leave to the default, but you may occasionally want to change.
 
@@ -49,14 +49,17 @@ Arguments (in this case, not command line arguments, but variables to modify in 
 * pylmm_loc: Location of the pylmm top level directory. Unless you know what you are doing, leave this to the default.
 * gwas_outfile: Where to write the final pylmm LOCO GWAS results.
 
-##### simple-analysis.py
+#### simple-analysis.py
 
 Overview: This script is made to be a very simple wrapper to run the GWAS analysis steps in get_genotypes_and_plink.py, make_pheno_file.py, loco_kinship.py, and run_pylmm_loco.py. This script may be useful for users who are uncomfortable with editing files from the command line, which is necessary for running the submit-pylmm-analysis.sh script. However, users who are comfortable editing files should use the shell script for more flexibility.
 
 Arguments:
-* Temp
+* (REQUIRED) --clinical_traits: Clinitical trait tsv file.
+* (REQUIRED) --trait_name: EXACT name of the trait to study.
+* (REQUIRED) --output_dir: Which directory to output results to.
+* --include_sex_chromosomes: Whether to include sex chromosomes. Default: exclude.
 
-##### get_genotypes_and_plink.py
+#### get_genotypes_and_plink.py
 
 Overview: This script takes the mice from a specified clinical traits file and matches them to their genotype information using a file called all_strains.tped. This information is then output in plink format, and then plink is used to recode alleles into the numbers 1 and 2, for GWAS analysis purposes. This is the first step of analysis, and importantly involves the decision of whether to include sex chromosomes or not.
 
@@ -67,7 +70,7 @@ Arguments:
 * --plink_basename: Base name of plink output.
 
 
-##### make_pheno_file.py
+#### make_pheno_file.py
 
 Overview: This script makes a phenotype file in pylmm format, which pylmm then uses to read in the phenotype values for each mouse for GWAS analysis. Essentially, we are simply extracting relevant information from the clinical traits file. One of the plink files called a tfam is required input, as it specifies which mice are present and genotyped for this study. This script also normalizes phenotypes by subtracting their mean and dividing by their standard deviation. This can be turned off, but generally shouldn't be. Eventually this script will allow the user to specify covariates to regress out, but we currently do not have that option implemented.
 
@@ -78,7 +81,7 @@ Arguments:
 * output: Name of output file.
 * no_normalization: Do not normalize target phenotype (flag only; no text).
 
-##### loco_kinship.py
+#### loco_kinship.py
 
 Overview: This script generates leave one chromosome out (LOCO) kinship matrices via pylmm; pylmm by itself doesn't have the LOCO option. The kinship matrix measures the genetic relatedness between mice in the study and is a critical component of GWAS analysis. In general, the kinship matrix is computed by comparing all SNPs between all mice. In LOCO analysis, a kinship matrix is generated for each chromosome, where that kinship matrix only looks at the SNPs NOT in that chromosome. This helps avoid decreased power due to linkage disequilibrium effects. We also generate files containing the chromosome excluded from each kinship matrix; these are used for the pylmmGWAS analysis.
 
@@ -87,7 +90,7 @@ Arguments:
 * --outdir: Name of output directory for LOCO and kinship files.
 * --pylmm: Executable path to pylmmKinship.py. Default is known location.
 
-##### run_pylmm_loco.py
+#### run_pylmm_loco.py
 
 Overview: This script runs pylmm LOCO analysis; that is, pylmmGWAS is run on the SNPs in in each chromosome using as input the kinship matrix with that chromosome left out. This helps avoid decreased power due to linkage disequilibrium effects. Results for each chromosome are then aggregated into a single file.
 
@@ -97,8 +100,16 @@ Arguments:
 * --outfile: Name of final pylmm results file.
 * --pylmm: Executable path to pylmmGWAS.py. Default is known location.
 
-##### compare-pvals.py
+#### compare-pvals.py
 
-Do not run this unless you know what you are doing. Compares SQL QTL results to pylmm LOCO results.
+Not part of the analysis pipeline. Do not run this unless you know what you are doing. Also note that this script also requires matplotlib.
+
+Overview: Compares p-values between SQL QTL file and pylmm results. Shows corerlations and significant hits, and makes some plots.
+
+Arguments:
+* (REQUIRED) --pylmm: pylmm pheno file.
+* (REQUIRED) --qtls: Clinical QTLs from SQL DB.
+* (REQUIRED) --trait_name: Name of trait being studied, needed for SQL QTL file.
+* --out_basename: Plot output base names.
 
 .
