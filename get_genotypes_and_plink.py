@@ -27,7 +27,7 @@ def get_fid_iid(args):
 	#  	traits file that aren't in all_strains.tped because we don't have
 	#  	genotype info for them
 	with(open(args.all_strains, 'r')) as genofile:
-		strains = genofile.readline().strip().split('\t')[5:]
+		strains = genofile.readline().strip().split('\t')[4:]
 
 	fid_iid = []  # fid == mouse strain, iid == individual mouse number
 	with(open(args.clinical, 'r')) as infile:
