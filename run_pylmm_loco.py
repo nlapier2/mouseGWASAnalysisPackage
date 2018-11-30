@@ -6,7 +6,7 @@ This script runs pylmm LOCO analysis; that is, pylmmGWAS is run on the SNPs in
 """
 
 
-import argparse, os, subprocess, sys
+import argparse, glob, os, subprocess, sys
 
 
 def parseargs():    # handle user arguments
@@ -42,7 +42,11 @@ def run_pylmm_loco(args):
 		# execute pylmm and put results in same directory
 		subprocess.Popen(['python', args.pylmm, '--tfile', one_chr_name,
 							'--kfile', kin_name, '--phenofile', args.pheno_file,
-							loco_dir+'gwas-out-chrom'+str(i+1)+'.txt']).wait()
+							args.loco_dir+'gwas-chrom'+str(i+1)+'.txt']).wait()
+		# clean one_chr files (no longer needed)
+		to_del = glob.glob(one_chr_name + '*')
+		for fname in to_del:
+			subprocess.Popen(['rm', fname]).wait()
 
 
 def aggregate_chrom_files(args):
@@ -53,7 +57,7 @@ def aggregate_chrom_files(args):
 	num_chroms = 21  # max for mouse, we also allow fewer i.e. exluding X & Y
 	with(open(args.outfile, 'a')) as outfile:
 		for i in range(num_chroms):
-			gwas_outfile = args.loco_dir + 'gwas-out-chrom' + str(i+1) + '.txt'
+			gwas_outfile = args.loco_dir + 'gwas-chrom' + str(i+1) + '.txt'
 			if not os.path.exists(gwas_outfile):
 				break  # only subset of chromosomes available
 			if i == 0:  # keep header from first file
@@ -61,7 +65,7 @@ def aggregate_chrom_files(args):
 			else:
 				subprocess.Popen(['tail', '-n', '+2', gwas_outfile],
 				 	stdout=outfile).wait()
-				subprocess.Popen(['rm', gwas_outfile]).wait()
+			subprocess.Popen(['rm', gwas_outfile]).wait()
 
 
 def main():
@@ -69,7 +73,7 @@ def main():
 	if not args.loco_dir.endswith('/'):
 		args.loco_dir += '/'
 	if args.outfile == 'AUTO':
-		args.outfile = args.loco_dir + 'aggregated-gwas-results.txt'
+		args.outfile = args.loco_dir + 'pylmm_gwas_results.txt'
 	open(args.outfile, 'w').close()  # clear file and check if writeable
 
 	run_pylmm_loco(args)  # run pylmm analysis on each chromosome

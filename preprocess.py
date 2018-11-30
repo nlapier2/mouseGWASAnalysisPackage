@@ -83,7 +83,7 @@ def preprocess_traits(args, pheno_map):
 		#  	phenotype map file is used, columns guaranteed to have these names.
 		mousecol, straincol=header.index('mouse_number'), header.index('Strain')
 
-		with(open(args.outname + '_clinical_traits.tsv', 'w')) as outfile:
+		with(open(args.outname, 'w')) as outfile:
 			outfile.write('\t'.join(header) + '\n')
 			for line in traitfile:
 				splits = line.strip().split('\t')

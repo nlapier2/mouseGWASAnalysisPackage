@@ -65,7 +65,8 @@ def parse_clinical_file(args, tfams):
 	"""
 	mouse2pheno, target_pheno, other_phenos = [], [], []
 	with(open(args.clinical, 'r')) as infile:
-		infile.readline()  # skip header line
+		header = infile.readline().strip().split('\t')
+		targetcol = header.index(args.target)  # find column of target phenotype
 		for line in infile:
 			splits = line.split('\t')
 			if len(splits) < 2:
@@ -73,10 +74,15 @@ def parse_clinical_file(args, tfams):
 			if splits[1] not in tfams or splits[0] not in tfams[splits[1]]:
 				continue  # this mouse not present in the tfam file
 			mouse_fid_iid = splits[1] + ' ' + splits[0]  # family & indiv. ID
-			tgt = float(splits[args.target])
-			others = splits[2 : args.target] + splits[args.target + 1 : ]
+			# grab target phenotype and other phenotyes in this line
+			tgt = splits[targetcol]
+			if tgt != 'NA':
+				tgt = float(tgt)
+			others = splits[2 : targetcol] + splits[targetcol + 1 : ]
+			# pack info together with mouse and also store target/other phenos
 			mouse2pheno.append([mouse_fid_iid, tgt, others])
-			target_pheno.append(tgt)
+			if tgt != 'NA':
+				target_pheno.append(tgt)
 			other_phenos.append(others)
 	return mouse2pheno, target_pheno, other_phenos
 
@@ -103,7 +109,8 @@ def normalize_and_write(args, mouse2pheno, target_pheno):
 		sample_sd = math.sqrt(sum(sq_diffs) / float(len(target_pheno) - 1))
 		# normalize target phenotypes, stored in mouse2pheno[i][1]
 		for i in range(len(mouse2pheno)):
-			mouse2pheno[i][1] = ((mouse2pheno[i][1] - mean) / sample_sd)
+			if mouse2pheno[i][1] != 'NA':
+				mouse2pheno[i][1] = ((mouse2pheno[i][1] - mean) / sample_sd)
 
 	with(open(args.output, 'w')) as outfile:
 		for m in mouse2pheno:

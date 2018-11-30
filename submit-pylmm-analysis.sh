@@ -37,7 +37,7 @@ pheno_file_name=$output_directory+'pheno_file_pylmm.txt'
 no_normalization=1  # 1 to normalize phenotypes, 0 for no normalization
 loco_outdir=$output_directory+'loco/'
 pylmm_loc='/u/home/n/nlapier2/mousedata/pylmm/'
-gwas_outfile=$output_directory+'pylmm_gwas_results.txt'
+gwas_outfile=$loco_outdir+'pylmm_gwas_results.txt'
 
 
 # Generally do not change the part below -- it simply runs the analysis scripts

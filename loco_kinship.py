@@ -12,7 +12,7 @@ We also generate files containing the chromosome excluded from each kinship
 """
 
 
-import argparse, os, subprocess, sys
+import argparse, glob, os, subprocess, sys
 
 
 def parseargs():    # handle user arguments
@@ -108,7 +108,8 @@ def run_pylmm_kinship(args, num_chroms, loco_fnames):
 		subprocess.Popen(['python', args.pylmm, '--tfile', loco_fnames[i],
 		 	loco_fnames[i] + '.kin']).wait()
 		# clean loco files; no longer needed
-		subprocess.Popen(['rm', loco_fnames[i] + '*']).wait()
+		subprocess.Popen(['rm', loco_fnames[i] + '.tped',
+			loco_fnames[i] + '.tfam', loco_fnames[i] + '.map']).wait()
 
 
 def main():
