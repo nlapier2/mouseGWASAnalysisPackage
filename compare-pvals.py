@@ -201,8 +201,8 @@ def compare_pvals(args, sql_results, pylmm_results):
 
 def main():
 	args = parseargs()  # handle user arguments
-	rsid2jax = get_jax2rsid(args)  # map SNP names from rsID to JAX
 	if not args.fastlmm:
+		rsid2jax = get_jax2rsid(args)  # map SNP names from rsID to JAX
 		sql_pvals = parse_sql(args, rsid2jax)  # get SQL SNPs to pvalues
 	else:
 		sql_pvals = parse_pylmm(args, fastlmm=True)  # if raw fastlmm format
