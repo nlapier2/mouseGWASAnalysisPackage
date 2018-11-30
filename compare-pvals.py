@@ -20,6 +20,8 @@ def parseargs():    # handle user arguments
 		help = 'Clinical QTLs from SQL DB.')
 	parser.add_argument('--trait_name', required = True,
 		help = 'Name of trait being studied, needed for SQL QTL file.')
+	parser.add_argument('--fastlmm', action='store_true',
+		help = 'Use this flag if --qtls is raw fastlmm output.')
 	parser.add_argument('--out_basename', default='',
 		help = 'Plot output base names.')
 	args = parser.parse_args()
@@ -65,12 +67,12 @@ def parse_sql(args, rsid2jax):
 	return sql_pvals
 
 
-def parse_pylmm(args):
+def parse_pylmm(args, fastlmm=False):
 	"""
 	Read SNP pvalues for a given trait from pylmm results.
 	Arguments:
 	-- args are the user arguments parsed with argparse.
-	-- rsid2jax is the rsID to JAX SNP name mapping from the get_rsid2jax method
+	-- fastlmm flag parses fastlmm format file, which is similar format
 	Returns: dict mapping JAX SNP names to their pvalue for the trait
 	"""
 	pylmm_pvals = {}
@@ -78,7 +80,10 @@ def parse_pylmm(args):
 		infile.readline()  # skip header
 		for line in infile:
 			splits = line.split()
-			jax, pval = splits[0], float(splits[-1])
+			if not fastlmm:
+				jax, pval = splits[0], float(splits[-1])
+			else:
+				jax, pval = splits[2], float(splits[6])
 			pylmm_pvals[jax] = pval
 	return pylmm_pvals
 
@@ -96,7 +101,7 @@ def plot_pvals(args, sql_pvals, pylmm_pvals):
 	#  	versus the other.
 	ord_sql_pvals = -np.log(sorted(sql_pvals))
 	ord_pylmm_pvals = -np.log(sorted(pylmm_pvals))
-	plt.plot(ord_sql_pvals, color='blue', label='sqlQTL')
+	plt.plot(ord_sql_pvals, color='blue', label='fastlmm')
 	plt.plot(ord_pylmm_pvals, color='red', label='pylmm')
 	plt.legend()
 	plt.title('Ordered p-values for each result')
@@ -114,7 +119,7 @@ def plot_pvals(args, sql_pvals, pylmm_pvals):
 	pvals_w_order = pvals_w_order[:1000]
 	indices = [i[0] for i in pvals_w_order]
 	pylmm_pvals_order = np.array(pylmm_pvals)[indices]
-	plt.plot(-np.array((sorted(sql_pvals)[:1000])), 'bo', label='sqlQTL')
+	plt.plot(-np.array((sorted(sql_pvals)[:1000])), 'bo', label='fastlmm')
 	plt.plot(-pylmm_pvals_order, 'ro', label='pylmm')
 	plt.legend()
 	plt.title('Comparison of results on SQL most signifcant SNPs')
@@ -130,7 +135,7 @@ def plot_pvals(args, sql_pvals, pylmm_pvals):
 	indices = [i[0] for i in pvals_w_order]
 	sql_pvals_order = np.array(sql_pvals)[indices]
 	plt.plot(-np.array((sorted(pylmm_pvals)[:1000])), 'ro', label='pylmm')
-	plt.plot(-sql_pvals_order, 'bo', label='sqlQTL')
+	plt.plot(-sql_pvals_order, 'bo', label='fastlmm')
 	plt.legend()
 	plt.title('Comparison of results on pylmm most signifcant SNPs')
 	plt.xlabel('Most to least significant')
@@ -197,7 +202,10 @@ def compare_pvals(args, sql_results, pylmm_results):
 def main():
 	args = parseargs()  # handle user arguments
 	rsid2jax = get_jax2rsid(args)  # map SNP names from rsID to JAX
-	sql_pvals = parse_sql(args, rsid2jax)  # get SQL SNPs to pvalues
+	if not args.fastlmm:
+		sql_pvals = parse_sql(args, rsid2jax)  # get SQL SNPs to pvalues
+	else:
+		sql_pvals = parse_pylmm(args, fastlmm=True)  # if raw fastlmm format
 	pylmm_pvals = parse_pylmm(args)  # get pylmm SNPs to pvalues
 	compare_pvals(args, sql_pvals, pylmm_pvals)  # comparison metrics & plots
 
