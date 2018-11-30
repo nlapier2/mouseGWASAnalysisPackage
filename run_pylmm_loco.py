@@ -44,7 +44,7 @@ def run_pylmm_loco(args):
 							'--kfile', kin_name, '--phenofile', args.pheno_file,
 							args.loco_dir+'gwas-chrom'+str(i+1)+'.txt']).wait()
 		# clean one_chr files (no longer needed)
-		to_del = glob.glob(one_chr_name + '*')
+		to_del = glob.glob(one_chr_name + '.*')
 		for fname in to_del:
 			subprocess.Popen(['rm', fname]).wait()
 

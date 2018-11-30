@@ -23,6 +23,7 @@ module load plink
 #  	output directory, and whether to include sex chromosomes in the analysis.
 # You will probably want to check/modify these for every analysis you run.
 
+package_dir='/location/of/mouseGWASAnalysisPackage/'
 clinical_traits='/full/path/to/my_clinical_traits_file.tsv'
 trait_name='my_trait_name'  # i.e. Fat_mass
 output_directory='/full/path/to/my/desired/output/directory/'
@@ -32,19 +33,19 @@ include_sex_chromosomes=1  # 1 to include sex chromosomes, 0 to exclude
 # Other options that you may want to set, but often the default is fine.
 
 all_strains='/u/home/n/nlapier2/mousedata/all_strains.tped'
-plink_basename=$output_directory+'plink12'
-pheno_file_name=$output_directory+'pheno_file_pylmm.txt'
+plink_basename=$output_directory'plink12'
+pheno_file_name=$output_directory'pheno_file_pylmm.txt'
 no_normalization=1  # 1 to normalize phenotypes, 0 for no normalization
-loco_outdir=$output_directory+'loco/'
+loco_outdir=$output_directory'loco/'
 pylmm_loc='/u/home/n/nlapier2/mousedata/pylmm/'
-gwas_outfile=$loco_outdir+'pylmm_gwas_results.txt'
+gwas_outfile=$loco_outdir'pylmm_gwas_results.txt'
 
 
 # Generally do not change the part below -- it simply runs the analysis scripts
 #  	based on the arguments you specified above. Only change if you know what
 #  	you are doing. One reason would be not wanting to run all analysis steps.
 
-if [ $include_sex_chromosomes = 1 ]
+if [ $include_sex_chromosomes = 0 ]
 then
 	sex_chrom_opt='--no_sex_chromosomes'
 else
@@ -56,16 +57,20 @@ then
 else
 	normalize_opt=''
 fi
-tfam=$plink_basename+'.tfam'
-pylmmKinship=$pylmm_loc+'pylmmKinship.py'
-pylmmGWAS=$pylmm_loc+'pylmmGWAS.py'
+tfam=$plink_basename'.tfam'
+pylmmKinship=$pylmm_loc'scripts/pylmmKinship.py'
+pylmmGWAS=$pylmm_loc'scripts/pylmmGWAS.py'
+get_geno_loc=$package_dir'get_genotypes_and_plink.py'
+make_pheno_loc=$package_dir'make_pheno_file.py'
+loco_kinship_loc=$package_dir'loco_kinship.py'
+run_pylmm_loc=$package_dir'run_pylmm_loco.py'
 
-python get_genotypes_and_plink.py $clinical_traits --all_strains $all_strains \
+python $get_geno_loc --clinical $clinical_traits --all_strains $all_strains \
 	$sex_chrom_opt --plink_basename $plink_basename
-python make_pheno_file.py --clinical $clinical_traits --target $trait_name \
-	--tfam $tfam --output $pheno_file_name $normalize_opt
-python loco_kinship.py --plink $plink_basename --outdir $loco_outdir \
-	--pylmm $pylmmKinship
-python run_pylmm_loco.py --loco_dir $loco_outdir --pheno_file $pheno_file_name \
-	--pylmm $pylmmGWAS --outfile $gwas_outfile
+python $make_pheno_loc --clinical $clinical_traits \
+	--target $trait_name --tfam $tfam --output $pheno_file_name $normalize_opt
+python $loco_kinship_loc --plink $plink_basename \
+	--outdir $loco_outdir --pylmm $pylmmKinship
+python $run_pylmm_loc --loco_dir $loco_outdir \
+	--pheno_file $pheno_file_name --pylmm $pylmmGWAS --outfile $gwas_outfile
 #

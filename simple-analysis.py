@@ -23,16 +23,17 @@ SET_BLOCK_1 = ["#!/bin/sh\n"+
 "#$ -l h_data=10G,h_rt=24:00:00\n"+
 ". /u/local/Modules/default/init/modules.sh\n"+
 "module load R\n"+
-"module load plink\n"]
+"module load plink\n"+
+"package_dir=/u/home/n/nlapier2/mousedata/mouseGWASAnalysisPackage/\n"]
 
 SET_BLOCK_2 = ["all_strains='/u/home/n/nlapier2/mousedata/all_strains.tped'\n"+
-"plink_basename=$output_directory+'plink12'\n"+
-"pheno_file_name=$output_directory+'pheno_file_pylmm.txt'\n"+
+"plink_basename=$output_directory'plink12'\n"+
+"pheno_file_name=$output_directory'pheno_file_pylmm.txt'\n"+
 "no_normalization=1\n"+
-"loco_outdir=$output_directory+'loco/'\n"+
+"loco_outdir=$output_directory'loco/'\n"+
 "pylmm_loc='/u/home/n/nlapier2/mousedata/pylmm/'\n"+
-"gwas_outfile=$output_directory+'pylmm_gwas_results.txt'\n"+
-"if [ $include_sex_chromosomes = 1 ]\n"+
+"gwas_outfile=$output_directory'pylmm_gwas_results.txt'\n"+
+"if [ $include_sex_chromosomes = 0 ]\n"+
 "then\n"+
 "\tsex_chrom_opt='--no_sex_chromosomes'\n"+
 "else\n"+
@@ -44,17 +45,21 @@ SET_BLOCK_2 = ["all_strains='/u/home/n/nlapier2/mousedata/all_strains.tped'\n"+
 "else\n"+
 "\tnormalize_opt=''\n"+
 "fi\n"+
-"tfam=$plink_basename+'.tfam'\n"+
-"pylmmKinship=$pylmm_loc+'pylmmKinship.py'\n"+
-"pylmmGWAS=$pylmm_loc+'pylmmGWAS.py'\n"+
-"python get_genotypes_and_plink.py $clinical_traits --all_strains $all_strains \\\n"+
+"tfam=$plink_basename'.tfam'\n"+
+"pylmmKinship=$pylmm_loc'scripts/pylmmKinship.py'\n"+
+"pylmmGWAS=$pylmm_loc'scripts/pylmmGWAS.py'\n"+
+"get_geno_loc=$package_dir'get_genotypes_and_plink.py'\n"+
+"make_pheno_loc=$package_dir'make_pheno_file.py'\n"+
+"loco_kinship_loc=$package_dir'loco_kinship.py'\n"+
+"run_pylmm_loc=$package_dir'run_pylmm_loco.py'\n"+
+"python $get_geno_loc --clinical $clinical_traits --all_strains $all_strains \\\n"+
 "\t$sex_chrom_opt --plink_basename $plink_basename\n"+
-"python make_pheno_file.py --clinical $clinical_traits --target $trait_name \\\n"+
-"\t--tfam $tfam --output $pheno_file_name $normalize_opt\n"+
-"python loco_kinship.py --plink $plink_basename --outdir $loco_outdir \\\n"+
-"\t--pylmm $pylmmKinship\n"+
-"python run_pylmm_loco.py --loco_dir $loco_outdir --pheno_file $pheno_file_name \\\n"+
-"\t--pylmm $pylmmGWAS --outfile $gwas_outfile\n"]
+"python $make_pheno_loc --clinical $clinical_traits \\\n"+
+"\t--target $trait_name --tfam $tfam --output $pheno_file_name $normalize_opt\n"+
+"python $loco_kinship_loc --plink $plink_basename \\\n"+
+"\t--outdir $loco_outdir --pylmm $pylmmKinship\n"+
+"python $run_pylmm_loc --loco_dir $loco_outdir \\\n"+
+"\t--pheno_file $pheno_file_name --pylmm $pylmmGWAS --outfile $gwas_outfile\n"]
 
 
 def parseargs():    # handle user arguments
@@ -83,8 +88,8 @@ def write_qsub_script(args):
 		outfile.write("clinical_traits='" + args.clinical + "'\n")
 		outfile.write("trait_name='" + args.trait_name + "'\n")
 		outfile.write("output_directory='" + args.output_dir + "'\n")
-		outfile.write("include_sex_chromosomes='" +
-			args.include_sex_chromosomes + "'\n")
+		sex_chr_var = '1' if args.include_sex_chromosomes else '0'
+		outfile.write("include_sex_chromosomes='" + sex_chr_var + "'\n")
 		outfile.write(SET_BLOCK_2[0])  # predifined parts of script
 
 
