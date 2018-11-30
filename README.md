@@ -178,6 +178,7 @@ Arguments:
 * (REQUIRED) --pylmm: pylmm pheno file.
 * (REQUIRED) --qtls: Clinical QTLs from SQL DB.
 * (REQUIRED) --trait_name: Name of trait being studied, needed for SQL QTL file.
+* --fastlmm: use this boolean flag if the qtl file is actually raw fastlmm output.
 * --out_basename: Plot output base names.
 
 .
