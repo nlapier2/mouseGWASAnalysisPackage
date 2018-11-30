@@ -81,6 +81,8 @@ def parse_pylmm(phenofile, fastlmm=False):
 		for line in infile:
 			splits = line.split()
 			if not fastlmm:
+				if splits[-1] == 'nan':
+					continue
 				jax, pval = splits[0], float(splits[-1])
 			else:
 				jax, pval = splits[2], float(splits[6])
