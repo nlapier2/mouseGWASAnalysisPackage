@@ -67,16 +67,16 @@ def parse_sql(args, rsid2jax):
 	return sql_pvals
 
 
-def parse_pylmm(args, fastlmm=False):
+def parse_pylmm(phenofile, fastlmm=False):
 	"""
 	Read SNP pvalues for a given trait from pylmm results.
 	Arguments:
-	-- args are the user arguments parsed with argparse.
+	-- phenofile is the phenotype file to read
 	-- fastlmm flag parses fastlmm format file, which is similar format
 	Returns: dict mapping JAX SNP names to their pvalue for the trait
 	"""
 	pylmm_pvals = {}
-	with(open(args.pylmm, 'r')) as infile:
+	with(open(phenofile, 'r')) as infile:
 		infile.readline()  # skip header
 		for line in infile:
 			splits = line.split()
@@ -205,8 +205,8 @@ def main():
 		rsid2jax = get_jax2rsid(args)  # map SNP names from rsID to JAX
 		sql_pvals = parse_sql(args, rsid2jax)  # get SQL SNPs to pvalues
 	else:
-		sql_pvals = parse_pylmm(args, fastlmm=True)  # if raw fastlmm format
-	pylmm_pvals = parse_pylmm(args)  # get pylmm SNPs to pvalues
+		sql_pvals = parse_pylmm(args.qtls, fastlmm=True)  #if raw fastlmm format
+	pylmm_pvals = parse_pylmm(args.pylmm)  # get pylmm SNPs to pvalues
 	compare_pvals(args, sql_pvals, pylmm_pvals)  # comparison metrics & plots
 
 
