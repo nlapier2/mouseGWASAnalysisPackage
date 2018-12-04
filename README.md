@@ -7,7 +7,7 @@ This is a package for leave-one-chromosome-out (LOCO) GWAS analysis of mouse cli
 ```
 git clone https://github.com/nlapier2/mouseGWASAnalysisPackage.git
 cd mouseGWASAnalysisPackage
-python simple-analysis.py --clinical_traits /path/to/my/clinical_traits_file.tsv --trait_name Fat_mass --output_dir /path/to/directory/to/output/results/to/
+python simple-analysis.py --clinical /path/to/my/clinical_traits_file.tsv --trait_name Fat_mass --output_dir /path/to/directory/to/output/results/to/
 ```
 
 This is the simplest way to run things, but it is recommended to run submit-pylmm-analysis.sh instead of simple-analysis.py if you are comfortable with editing files via command line (more details below).
