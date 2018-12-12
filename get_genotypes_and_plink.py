@@ -55,7 +55,7 @@ def get_fid_iid(args):
 	return fid_iid
 
 
-def write_tfam(fid_iid):
+def write_tfam(fid_iid, outpath):
 	"""
 	Given the mouse strains (fid) and individual numbers (iid), write out a
 	  	plink-format tfam file. In this case we don't specify the other tfam
@@ -64,12 +64,12 @@ def write_tfam(fid_iid):
 	Argument: fid_iid specifies mouse strains and numbers in this study.
 	"""
 	other_cols = '\t0\t0\t0\t-9\n'  # father/mother/sex/pheno unspecified
-	with(open('TEMP.tfam', 'w')) as outfile:
+	with(open(outpath+'TEMP.tfam', 'w')) as outfile:
 		for pair in fid_iid:  # pair is [fid, iid] of a mouse
 			outfile.write(pair[0] + '\t' + pair[1] + other_cols)
 
 
-def write_tped(args, fid_iid):
+def write_tped(args, fid_iid, outpath):
 	"""
 	Writes plink-formatted tped file, which maps each SNP to genotype info for
 	  	the mice in this study at that SNP.
@@ -79,7 +79,7 @@ def write_tped(args, fid_iid):
 	-- fid_iid contains the mouse strains (fids) & numbers (iid) in this study.
 	"""
 	with(open(args.all_strains, 'r')) as genofile:
-		with(open('TEMP.tped', 'w')) as outfile:
+		with(open(outpath+'TEMP.tped', 'w')) as outfile:
 			# all_strains.tped has the genotype for each SNP for each strain.
 			# Here we take the mice from the clincal traits file and write
 			#  	out their genotype at the SNP by indexing into the proper
@@ -96,15 +96,15 @@ def write_tped(args, fid_iid):
 					'\t'.join(genos) + '\n')
 
 
-def get_genotypes(args):
+def get_genotypes(args, outpath):
 	"""
 	Grabs genotype info for mice in a study & puts it in plink format.
 	Argument: args are the user arguments parsed from argparse.
 	"""
 	# extract family and mouse IDs from clinical trait file, write tfam & tped
 	fid_iid = get_fid_iid(args)
-	write_tfam(fid_iid)
-	write_tped(args, fid_iid)
+	write_tfam(fid_iid, outpath)
+	write_tped(args, fid_iid, outpath)
 
 
 def main():
@@ -117,7 +117,9 @@ def main():
 			clinical_dir = '/'.join(splits[:-1]) + '/'
 		args.plink_basename = clinical_dir + 'plink12'
 
-	get_genotypes(args)  # get genotypes for mice, format in plink format
+outpath = '/'.join(args.plink_basename.split('/')[:-1]) + '/'
+
+	get_genotypes(args, outpath)  # get genotypes for mice, format in plink format
 
 	# load the plink module
 	# loader = '. /u/local/Modules/default/init/modules.sh && module load plink'
@@ -125,8 +127,8 @@ def main():
 
 	# now recode (reformat) the tfam & tped files using plink
 	subprocess.Popen(['plink', '--mouse', '--recode', '12', '--transpose',
-						'--tfile', 'TEMP', '--out', args.plink_basename]).wait()
-	subprocess.Popen(['rm', 'TEMP.tfam', 'TEMP.tped']).wait()
+						'--tfile', outpath+'TEMP', '--out', args.plink_basename]).wait()
+	subprocess.Popen(['rm', outpath+'TEMP.tfam', outpath+'TEMP.tped']).wait()
 
 
 if __name__ == '__main__':

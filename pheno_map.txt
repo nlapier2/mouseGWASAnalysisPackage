@@ -2,12 +2,24 @@
 # left column will be translated to the names from the right column
 # so that phenotype names are kept consistent between different studies.
 # Columns are tab delimited.
-#ORIGINAL_NAME	FINAL_NAME
-LYM	LYMPH
-LYM %	LYMPH %
-LYM (10^3/µl)	LYMPH
-MONO (10^3/µl)	MONO
-GRAN (10^3/µl)	GRAN
-#Temp	Strain
-Mouse ID	mouse_number
+#ORIGINAL_NAME  FINAL_NAME
+LYM     LYMPH
+LYM %   LYMPH %
+LYM (10^3/µl)   LYMPH
+MONO (10^3/µl)  MONO
+GRAN (10^3/µl)  GRAN
+Insulin pg/ml   Insulin
+Trigly. triglycerides
+Tot chol.       total_cholesterol
+FFA     free fatty acids
+UC      unesterified cholesterol
+LDL_plus_VLDL   LDL
+VLDL+LDL        LDL
+Phospholipids (liver)   phospholipids (liver)
+Total cholesterol (liver)       total cholesterol (liver)
+Triglycerides (liver)   triglycerides (liver)
+Unesterified cholesterol (liver)        unesterified cholesterol (liver)
+#Temp   Strain
+Mouse ID        mouse_number
 #
+

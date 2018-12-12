@@ -67,13 +67,15 @@ def parse_clinical_file(args, tfams):
 	with(open(args.clinical, 'r')) as infile:
 		header = infile.readline().strip().split('\t')
 		targetcol = header.index(args.target)  # find column of target phenotype
+        
+        mousecol, straincol = header.index('mouse_number'), header.index('Strain')
 		for line in infile:
 			splits = line.split('\t')
 			if len(splits) < 2:
 				break
-			if splits[1] not in tfams or splits[0] not in tfams[splits[1]]:
+			if splits[straincol] not in tfams or splits[mousecol] not in tfams[splits[straincol]]:
 				continue  # this mouse not present in the tfam file
-			mouse_fid_iid = splits[1] + ' ' + splits[0]  # family & indiv. ID
+			mouse_fid_iid = splits[straincol] + ' ' + splits[mousecol]  # family & indiv. ID
 			# grab target phenotype and other phenotyes in this line
 			tgt = splits[targetcol]
 			if tgt != 'NA':

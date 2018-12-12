@@ -20,7 +20,7 @@ def parseargs():    # handle user arguments
 		help = 'Name of final pylmm results file.')
 	parser.add_argument('--pylmm',
 		default = '/u/home/n/nlapier2/mousedata/pylmm/scripts/pylmmGWAS.py',
-		help = 'Executable path to pylmmGWAS.py. Default is known location.')
+		help = 'Executable path to pylmmGWAS.py. Default is known location.') 
 	args = parser.parse_args()
 	return args
 
@@ -44,9 +44,9 @@ def run_pylmm_loco(args):
 							'--kfile', kin_name, '--phenofile', args.pheno_file,
 							args.loco_dir+'gwas-chrom'+str(i+1)+'.txt']).wait()
 		# clean one_chr files (no longer needed)
-		to_del = glob.glob(one_chr_name + '.*')
-		for fname in to_del:
-			subprocess.Popen(['rm', fname]).wait()
+        # to_del = glob.glob(one_chr_name + '.*')
+        # for fname in to_del:
+            # subprocess.Popen(['rm', fname]).wait()
 
 
 def aggregate_chrom_files(args):

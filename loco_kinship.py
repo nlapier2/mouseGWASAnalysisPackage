@@ -25,6 +25,8 @@ def parseargs():    # handle user arguments
 	parser.add_argument('--pylmm',
 		default = '/u/home/n/nlapier2/mousedata/pylmm/scripts/pylmmKinship.py',
 		help = 'Executable path to pylmmKinship.py. Default is known location.')
+    parser.add_argument('--keeploco', action="store_true", default=False,
+        help = 'Optional flag to keep LOCO .tped, .tfam, and .map files after creating LOCO kinship file')
 	args = parser.parse_args()
 	return args
 
@@ -108,8 +110,9 @@ def run_pylmm_kinship(args, num_chroms, loco_fnames):
 		subprocess.Popen(['python', args.pylmm, '--tfile', loco_fnames[i],
 		 	loco_fnames[i] + '.kin']).wait()
 		# clean loco files; no longer needed
-		subprocess.Popen(['rm', loco_fnames[i] + '.tped',
-			loco_fnames[i] + '.tfam', loco_fnames[i] + '.map']).wait()
+        if not args.keeploco:
+            subprocess.Popen(['rm', loco_fnames[i] + '.tped',
+                loco_fnames[i] + '.tfam', loco_fnames[i] + '.map']).wait()
 
 
 def main():
