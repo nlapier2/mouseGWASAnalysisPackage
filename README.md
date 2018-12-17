@@ -104,7 +104,7 @@ Arguments:
 
 #### get_genotypes_and_plink.py
 
-Overview: This script takes the mice from a specified clinical traits file and matches them to their genotype information using a file called all_strains.tped. This information is then output in plink format, and then plink is used to recode alleles into the numbers 1 and 2, for GWAS analysis purposes. This is the first step of analysis, and importantly involves the decision of whether to include sex chromosomes or not.
+Overview: This script takes the mice from a specified clinical traits file and matches them to their genotype information using a file called all_strains.tped. This information is then output in plink format, and then plink is used to recode alleles into the numbers 0, 1 and 2, for GWAS analysis purposes. This is the first step of analysis, and importantly involves the decision of whether to include sex chromosomes or not.
 
 Example: 
 ```
