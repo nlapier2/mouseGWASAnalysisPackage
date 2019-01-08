@@ -29,7 +29,9 @@ def parseargs():    # handle user arguments
 		help = 'Plink tfam file; exclude mice not in it.')
 	parser.add_argument('--output', default='pheno_file_pylmm.txt',
 		help = 'Name of output file.')
-  parser.add_argument('--transform', type=str, default='quantile', help='This allows the user to transform the phenotype. By default, quantile transformation is done (--transform quantile). Other transformations are standardizing the trait (--transform standard) and preventing transformations (--transform none)')
+  parser.add_argument('--transform', type=str, default='quantile', help='This allows the user to transform the phenotype. " +
+		      "By default, quantile transformation is done (--transform quantile). Other transformations are " +
+		      "standardizing the trait (--transform standard) and preventing transformations (--transform none)')
   #parser.add_argument('--regress', action='store_true',
 	#	help = 'Use this to regress target phenotype on other phenotypes.')
 	args = parser.parse_args()
