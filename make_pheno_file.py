@@ -29,10 +29,9 @@ def parseargs():    # handle user arguments
 		help = 'Plink tfam file; exclude mice not in it.')
 	parser.add_argument('--output', default='pheno_file_pylmm.txt',
 		help = 'Name of output file.')
-  parser.add_argument('--transform', type=str, default='quantile', help='This allows the user to transform the phenotype. " +
-		      "By default, quantile transformation is done (--transform quantile). Other transformations are " +
-		      "standardizing the trait (--transform standard) and preventing transformations (--transform none)')
-  #parser.add_argument('--regress', action='store_true',
+	parser.add_argument('--transform', default='quantile',
+    		help = 'Phenotype transformation, Options: quantile (default), standardization, and none')
+  	#parser.add_argument('--regress', action='store_true',
 	#	help = 'Use this to regress target phenotype on other phenotypes.')
 	args = parser.parse_args()
 	return args
@@ -74,7 +73,7 @@ def parse_clinical_file(args, tfams):
 		header = infile.readline().strip().split('\t')
 		targetcol = header.index(args.target)  # find column of target phenotype
         
-        mousecol, straincol = header.index('mouse_number'), header.index('Strain')
+        	mousecol, straincol = header.index('mouse_number'), header.index('Strain')
 		for line in infile:
 			splits = line.split('\t')
 			if len(splits) < 2:
@@ -102,30 +101,30 @@ def parse_clinical_file(args, tfams):
 
 def normalize_and_write(args, mouse2pheno, target_pheno):
 	"""
-  By default, we preform a quantile transformation by sorting the traits and taking the
-    relative location (1/n, 2/n, .., n/n) and map this to the z-scores.
-  The user has the opportunity to standardize the target phenotype values by subtracting 
-    the mean and dividing by standard deviation
-  The phenotype output is then writes results in pylmm format to args.output
+  	By default, we preform a quantile transformation by sorting the traits and taking the
+	relative location (1/n, 2/n, .., n/n) and map this to the z-scores.
+	The user has the opportunity to standardize the target phenotype values by subtracting 
+  	the mean and dividing by standard deviation
+  	The phenotype output is then writes results in pylmm format to args.output
 	Arguments:
 	-- mouse2pheno: maps mouse to the value of the target phenotype and the
 	  	the non-target phenos (other), which can be corrected for
 	-- target_pheno: just the raw target phenotype values
 	-- other_phenos: just the raw non-target (other) phenotype values
 	"""
-  if args.transform == 'quantile':
-    #required to be a matrix and not an array
-    mat = np.matrix(target_pheno)
-    #the sklear magic
-    transform = preprocessing.quantile_transform(mat,output_distribution='normal',axis=1)
-    #takes matrix and puts it into list
-    transform = transform[0].tolist()
-    #target_pheno has no NAs so the loc of values don't necessarily map exactly
-    targ_loc = 0
-    for i in range(len(mouse2pheno)):
-      if mouse2pheno[i][1] != 'NA':
-        mouse2pheno[i][1] = transform[targ_loc]
-        targ_loc += 1
+	if args.transform == 'quantile':
+    		#required to be a matrix and not an array
+    		mat = np.matrix(target_pheno)
+    		#the sklear magic
+    		transform = preprocessing.quantile_transform(mat,output_distribution='normal',axis=1)
+    		#takes matrix and puts it into list
+    		transform = transform[0].tolist()
+    		#target_pheno has no NAs so the loc of values don't necessarily map exactly
+    		targ_loc = 0
+    		for i in range(len(mouse2pheno)):
+      			if mouse2pheno[i][1] != 'NA':
+        			mouse2pheno[i][1] = transform[targ_loc]
+        			targ_loc += 1
      
 	elif args.transform == 'standard':
 		# calculate mean and standard deviation of target phenotype values
