@@ -1,6 +1,6 @@
 # mouseGWASAnalysisPackage
 
-This is a package for leave-one-chromosome-out (LOCO) GWAS analysis of mouse clinical traits via pylmm on hoffman2. The only dependencies are numpy and scipy, which are pylmm dependencies. These are probably already installed by default, but if you have problems you may want to run "pip install --user numpy scipy".
+This is a package for leave-one-chromosome-out (LOCO) GWAS analysis of mouse clinical traits via pylmm on hoffman2. The only dependencies are numpy, sklearn and scipy, which are pylmm dependencies. These are probably already installed by default, but if you have problems you may want to run "pip install --user numpy scipy sklearn".
 
 ### Quick Usage
 
@@ -82,7 +82,7 @@ Arguments (in this case, not command line arguments, but variables to modify in 
 * all_strains: Location of all_strains.tped file, which matches mouse strains to their genotypes. Unless you know what you are doing, leave this to the default.
 * plink_basename: Base name (i.e. do not specify file extension) of the output plink files from get_genotypes_and_plink.py
 * pheno_file_name: Where to write the pylmm-formatted phenotype file.
-* no_normalization: to normalize phenotypes, 0 for no normalization
+* transform: to transform the phenotypes: quantile for quantile transformation (default), standard for standardization and none for no transformation.
 * loco_outdir: Where to write the LOCO kinship matrices and other LOCO files.
 * pylmm_loc: Location of the pylmm top level directory. Unless you know what you are doing, leave this to the default.
 * gwas_outfile: Where to write the final pylmm LOCO GWAS results.
