@@ -47,8 +47,8 @@ def read_pheno_map(mapfile):
       if line.startswith('#'):
         continue
       splits = line.strip().split('\t')
-	  if len(splits) < 2:
-		  continue
+      if len(splits) < 2:
+        continue
       pheno_map[splits[0]] = splits[1]
   return pheno_map
 
