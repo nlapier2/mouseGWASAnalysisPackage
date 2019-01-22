@@ -25,7 +25,7 @@ def parseargs():    # handle user arguments
     help = 'Clinitical QTLs tsv file.')  # DEPRECATED
   parser.add_argument('--outname', default='AUTO', help = 'Output file name.')
   parser.add_argument('--pheno_map',
-    default = '/u/home/n/nlapier2/mousedata/pheno_map.txt',
+    default = '/u/home/n/nlapier2/mousedata/mouseGWASAnalysisPackage/pheno_map.txt',
     help = 'Specify phenotype map file to read. Default to known location.')
   args = parser.parse_args()
   return args
@@ -47,6 +47,8 @@ def read_pheno_map(mapfile):
       if line.startswith('#'):
         continue
       splits = line.strip().split('\t')
+	  if len(splits) < 2:
+		  continue
       pheno_map[splits[0]] = splits[1]
   return pheno_map
 
