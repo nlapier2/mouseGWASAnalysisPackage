@@ -35,7 +35,7 @@ include_sex_chromosomes=1  # 1 to include sex chromosomes, 0 to exclude
 all_strains='/u/home/n/nlapier2/mousedata/all_strains.tped'
 plink_basename=$output_directory'plink12'
 pheno_file_name=$output_directory'pheno_file_pylmm.txt'
-no_normalization=1  # 1 to normalize phenotypes, 0 for no normalization
+transform='quantile'  # quantile=quantile transformation; standardize is standardization and none is none
 loco_outdir=$output_directory'loco/'
 pylmm_loc='/u/home/n/nlapier2/mousedata/pylmm/'
 gwas_outfile=$loco_outdir'pylmm_gwas_results.txt'
@@ -51,12 +51,7 @@ then
 else
 	sex_chrom_opt=''
 fi
-if [ $no_normalization = 1 ]
-then
-	normalize_opt='--no_normalization'
-else
-	normalize_opt=''
-fi
+
 tfam=$plink_basename'.tfam'
 pylmmKinship=$pylmm_loc'scripts/pylmmKinship.py'
 pylmmGWAS=$pylmm_loc'scripts/pylmmGWAS.py'
@@ -68,7 +63,7 @@ run_pylmm_loc=$package_dir'run_pylmm_loco.py'
 python $get_geno_loc --clinical $clinical_traits --all_strains $all_strains \
 	$sex_chrom_opt --plink_basename $plink_basename
 python $make_pheno_loc --clinical $clinical_traits \
-	--target $trait_name --tfam $tfam --output $pheno_file_name $normalize_opt
+	--target $trait_name --tfam $tfam --output $pheno_file_name --transform $transform
 python $loco_kinship_loc --plink $plink_basename \
 	--outdir $loco_outdir --pylmm $pylmmKinship
 python $run_pylmm_loc --loco_dir $loco_outdir \
