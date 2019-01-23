@@ -128,7 +128,7 @@ def normalize_and_write(args, mouse2pheno, target_pheno):
         mouse2pheno[i][1] = transform[targ_loc]
         targ_loc += 1
 
-  elif args.transform == 'standard':
+  elif args.transform == 'standardize':
     # calculate mean and standard deviation of target phenotype values
     mean = sum(target_pheno) / float(len(target_pheno))
     sq_diffs = [(i - mean)**2 for i in target_pheno]
