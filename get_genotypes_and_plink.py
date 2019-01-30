@@ -117,7 +117,10 @@ def main():
       clinical_dir = '/'.join(splits[:-1]) + '/'
     args.plink_basename = clinical_dir + 'plink12'
 
-  outpath = '/'.join(args.plink_basename.split('/')[:-1]) + '/'
+  if '/' not in args.plink_basename:
+    outpath = './'
+  else:
+    outpath = '/'.join(args.plink_basename.split('/')[:-1]) + '/'
 
   get_genotypes(args, outpath)  # get genotypes for mice, format in plink format
 
