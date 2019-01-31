@@ -92,6 +92,7 @@ def preprocess_traits(args, pheno_map):
         if len(splits) < 2:  # trailing line at end of file
           break
         #splits[straincol] = splits[straincol].replace('/', '.')
+        splits[straincol] = splits[straincol].replace(' ', '_')
         # replace strain name using pheno_map, if necessary
         if splits[straincol] in pheno_map:
           splits[straincol] = pheno_map[splits[straincol]]

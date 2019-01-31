@@ -19,6 +19,10 @@ def parseargs():    # handle user arguments
   parser.add_argument('--all_strains',
     default = '/u/home/n/nlapier2/mousedata/all_strains.tped',
     help= 'Location of all_strains.tped file. Default is a known location.')
+  parser.add_argument('--geno', default='0.1',
+    help = 'Filter variants missing above this rate. Generally, do not modify.')
+  parser.add_argument('--maf', default='0.05',
+    help = 'Minor allele freq. filter, default 0.05. Generally, do not modify.')
   parser.add_argument('--no_sex_chromosomes', action='store_true',
     help = 'Ignore sex chromosomes.')
   parser.add_argument('--plink_basename', default='AUTO',
@@ -39,6 +43,7 @@ def get_fid_iid(args):
   #    genotype info for them
   with(open(args.all_strains, 'r')) as genofile:
     strains = genofile.readline().strip().split('\t')[4:]
+    strains = [i.replace(' ', '_') for i in strains]
 
   fid_iid = []  # fid == mouse strain, iid == individual mouse number
   with(open(args.clinical, 'r')) as infile:
@@ -47,7 +52,7 @@ def get_fid_iid(args):
     straincol, numcol = header.index('Strain'), header.index('mouse_number')
     for line in infile:
       splits = line.strip().split('\t')
-      fid, iid = splits[straincol], splits[numcol]
+      fid, iid = splits[straincol].replace(' ', '_'), splits[numcol]
       if fid not in strains:  # see above note on all_strains.tped
         print('WARNING: strain '+ str(fid) +' not in all_strains.tped.')
         continue
@@ -86,6 +91,7 @@ def write_tped(args, fid_iid, outpath):
       #    header column & grabbing that strain's genotype in each line.
       # Then we write the SNP info and the genotypes for the study's mice.
       header = genofile.readline().strip().split('\t')
+      header = [i.replace(' ', '_') for i in header]
       genocols = [header.index(pair[0]) for pair in fid_iid]
       for line in genofile:
         splits = line.strip().split('\t')
@@ -130,7 +136,8 @@ def main():
 
   # now recode (reformat) the tfam & tped files using plink
   subprocess.Popen(['plink', '--mouse', '--recode', '12', '--transpose',
-            '--tfile', outpath+'TEMP', '--out', args.plink_basename]).wait()
+            '--maf', args.maf, '--geno', args.geno, '--tfile', outpath+'TEMP',
+            '--out', args.plink_basename]).wait()
   subprocess.Popen(['rm', outpath+'TEMP.tfam', outpath+'TEMP.tped']).wait()
 
 
