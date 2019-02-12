@@ -36,6 +36,8 @@ plink_basename=$output_directory'plink12'
 pheno_file_name=$output_directory'pheno_file_pylmm.txt'  
 #quantile is quantile transformation, standardize is standardization, boxcox is box-cox transformation and none is none
 transform='standardize'
+lmbda=0 #the default boxcox transformation is log transformation, we recommend using one of {-2,-1,-0.5,0,0.5,2}
+#this input value is ignored in the script unless you indicate transform='boxcox'
 plot=0 # 1 to plot transformations, 0 to forgo; if you plot, you cannot run the full pipeline after make_pheno_file.py
 loco_outdir=$output_directory'loco/'
 pylmm_loc='/u/home/n/nlapier2/mousedata/pylmm/'
@@ -71,8 +73,8 @@ run_pylmm_loc=$package_dir'run_pylmm_loco.py'
 
 python $get_geno_loc --clinical $clinical_traits --all_strains $all_strains \
 	$sex_chrom_opt --plink_basename $plink_basename
-python $make_pheno_loc --clinical $clinical_traits \
-	--target $trait_name --tfam $tfam --output $pheno_file_name --transform $transform $plot_opt
+python $make_pheno_loc --clinical $clinical_traits --target $trait_name \
+	--tfam $tfam --output $pheno_file_name --transform $transform --lmbda $lmbda $plot_opt
 #these scripts will not run if you plot in the figure before
 python $loco_kinship_loc --plink $plink_basename \
 	--outdir $loco_outdir --pylmm $pylmmKinship
