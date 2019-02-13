@@ -39,7 +39,7 @@ def parseargs():    # handle user arguments
   parser.add_argument('--transform', default='standardize',
     choices=['quantile', 'standardize','boxcox', 'none'],
     help = 'Phenotype transformation. Options: quantile, standardize (default), boxcox, and none. The boxcox transformation also needs the --lambda argument')
-  parser.add_argument('--lmbda', default='0',
+  parser.add_argument('--lmbda', '--Lambda', default='0', type=float,
     help = 'Lambda value for boxcox transformation, 0 (default) which returns the log-transformed data.')
   parser.add_argument('--plot', action='store_true',
     help = 'Will return qqplot of the standardized, quantile, and boxcox for lambda= -2, -1, -0.5, 0, 0.5, and 2 in a stacked plot. This will be writen to the --output file prefix with .png ending. We will ignore  --transform and --lambda')
@@ -141,7 +141,7 @@ def normalize_and_write(args, mouse2pheno, target_pheno):
     mean = sum(target_pheno) / float(len(target_pheno))
     sq_diffs = [(i - mean)**2 for i in target_pheno]
     sample_sd = math.sqrt(sum(sq_diffs) / float(len(target_pheno) - 1))
-    standardize = [(i-mean)/sample_sd for i in target_pheno] 
+    standardize = [(i-mean)/sample_sd for i in target_pheno]
     boxneg2 = stats.boxcox(array, -2.0)
     boxneg1 = stats.boxcox(array, -1.0)
     boxneg05 = stats.boxcox(array,-0.5)
