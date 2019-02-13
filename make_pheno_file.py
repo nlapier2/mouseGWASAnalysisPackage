@@ -1,5 +1,5 @@
 """
-This script makes a phenotype file in pylmm format, which pylmm then uses to
+This script makes a phenotype file in pylmm forarray, which pylmm then uses to
   read in the phenotype values for each mouse for GWAS analysis. Essentially,
   we are simply extracting relevant information from the clinical traits file.
 One of the plink files called a tfam is required input, as it specifies which
@@ -15,8 +15,15 @@ Eventually this script will allow the user to specify covariates to
 """
 
 
-import argparse, math, sys, numpy as np
+import argparse, math, sys, glob
+import numpy as np
 from sklearn import preprocessing
+from scipy import stats
+#copied all imports from stacked-manhattan.py may not need all
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
 
 def parseargs():    # handle user arguments
   parser = argparse.ArgumentParser(description="Given phenotype file," +
@@ -29,9 +36,13 @@ def parseargs():    # handle user arguments
     help = 'Plink tfam file; exclude mice not in it.')
   parser.add_argument('--output', default='pheno_file_pylmm.txt',
     help = 'Name of output file.')
-  parser.add_argument('--transform', default='quantile',
-      choices=['quantile', 'standardize', 'none'],
-        help = 'Phenotype transformation. Options: quantile (default), standardize, and none')
+  parser.add_argument('--transform', default='standardize',
+    choices=['quantile', 'standardize','boxcox', 'none'],
+    help = 'Phenotype transformation. Options: quantile, standardize (default), boxcox, and none. The boxcox transformation also needs the --lambda argument')
+  parser.add_argument('--lmbda', default='0',
+    help = 'Lambda value for boxcox transformation, 0 (default) which returns the log-transformed data.')
+  parser.add_argument('--plot', action='store_true',
+    help = 'Will return qqplot of the standardized, quantile, and boxcox for lambda= -2, -1, -0.5, 0, 0.5, and 2 in a stacked plot. This will be writen to the --output file prefix with .png ending. We will ignore  --transform and --lambda')
     #parser.add_argument('--regress', action='store_true',
   #  help = 'Use this to regress target phenotype on other phenotypes.')
   args = parser.parse_args()
@@ -114,7 +125,73 @@ def normalize_and_write(args, mouse2pheno, target_pheno):
   -- target_pheno: just the raw target phenotype values
   -- other_phenos: just the raw non-target (other) phenotype values
   """
-  if args.transform == 'quantile':
+  if args.plot:
+    #sklearn wants a matrix so here's a matrix
+    mat = np.matrix(target_pheno)
+    #there may be a less obnoxious way of getting everything to work but whatever
+    mat = mat.reshape((len(target_pheno),1))
+    #stats.boxcox wants a column vector, so here's a column vector
+    array = np.array(target_pheno)
+    quantile = preprocessing.quantile_transform(mat,output_distribution='normal',axis=0)
+    #this is stupid but necessary
+    quantile = quantile.flatten()
+    saveloc = args.output.split('.')[0]
+    saveloc = saveloc+'.png'
+    # calculate mean and standard deviation of target phenotype values
+    mean = sum(target_pheno) / float(len(target_pheno))
+    sq_diffs = [(i - mean)**2 for i in target_pheno]
+    sample_sd = math.sqrt(sum(sq_diffs) / float(len(target_pheno) - 1))
+    standardize = [(i-mean)/sample_sd for i in target_pheno] 
+    boxneg2 = stats.boxcox(array, -2.0)
+    boxneg1 = stats.boxcox(array, -1.0)
+    boxneg05 = stats.boxcox(array,-0.5)
+    box0 = stats.boxcox(array, 0.0)
+    boxpos05 = stats.boxcox(array,0.5)
+    boxpos2 = stats.boxcox(array,2.0)
+    figure(num=None, figsize=(16,32), dpi=80, facecolor='w', edgecolor='k')
+    plt.title('QQPlots of Different Transformations')
+    plt.subplots_adjust(hspace=0.5)
+    ax = plt.subplot(4, 2, 1)
+    stats.probplot(standardize,plot=plt)
+    ax.set_title('Standardized Phenotype')
+    ax = plt.subplot(4, 2, 2)
+    stats.probplot(quantile,plot=plt)
+    ax.set_title('Quantile Transformed Phenotype')
+    ax = plt.subplot(4, 2, 3)
+    stats.probplot(boxneg2,plot=plt)
+    ax.set_title('Box-Cox Lambda=-2 Transformed Phenotype')
+    ax = plt.subplot(4, 2, 4)
+    stats.probplot(boxneg1,plot=plt)
+    ax.set_title('Box-Cox Lambda=-1 Transformed Phenotype')
+    ax = plt.subplot(4, 2, 5)
+    stats.probplot(boxneg05,plot=plt)
+    ax.set_title('Box-Cox Lambda=-0.5 Transformed Phenotype')
+    ax = plt.subplot(4, 2, 6)
+    stats.probplot(box0,plot=plt)
+    ax.set_title('Box-Cox Lambda=0 Transformed Phenotype')
+    ax = plt.subplot(4, 2, 7)
+    stats.probplot(boxpos05,plot=plt)
+    ax.set_title('Box-Cox Lambda=0.5 Transformed Phenotype')
+    ax = plt.subplot(4, 2, 8)
+    stats.probplot(boxpos2,plot=plt)
+    ax.set_title('Box-Cox Lambda=2 Transformed Phenotype')
+    plt.savefig(saveloc)
+    #just exit
+    exit()
+
+  if args.transform == 'boxcox':
+    #stats.boxcox wants a column vector, so here's a column vector
+    array = np.array(target_pheno)
+    transform = stats.boxcox(array, args.lmbda)
+    transform = transform.tolist()
+    #target_pheno has no NAs so the loc of values don't necessarily map exactly
+    targ_loc = 0
+    for i in range(len(mouse2pheno)):
+      if mouse2pheno[i][1] != 'NA':
+        mouse2pheno[i][1] = transform[targ_loc]
+        targ_loc += 1
+
+  elif args.transform == 'quantile':
     #required to be a matrix and not an array
     mat = np.matrix(target_pheno)
     #the sklearn magic
