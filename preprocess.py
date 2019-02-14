@@ -22,7 +22,7 @@ def parseargs():    # handle user arguments
   parser.add_argument('--clinical', required = True,
     help = 'Clinitical trait tsv file.')
   parser.add_argument('--qtls', default = 'NONE',
-    help = 'Clinitical QTLs tsv file.')  # DEPRECATED
+    help = 'DEPRECATED. Clinitical QTLs tsv file.')
   parser.add_argument('--outname', default='AUTO', help = 'Output file name.')
   parser.add_argument('--pheno_map',
     default = '/u/home/n/nlapier2/mousedata/mouseGWASAnalysisPackage/pheno_map.txt',

@@ -4,15 +4,25 @@
 # Columns are tab delimited.
 #ORIGINAL_NAME	FINAL_NAME
 LYM	LYMPH
+Haem.LYMabs	LYMPH
 LYM %	LYMPH %
 LYM (10^3/µl)	LYMPH
 MONO (10^3/µl)	MONO
+Haem.MONabs	MONO
 GRAN (10^3/µl)	GRAN
 Insulin pg/ml	Insulin
+Biochem.Triglycerides	triglycerides
 Trigly.	triglycerides
 Tot chol.	total_cholesterol
+Biochem.Tot.Cholesterol	total cholesterol
 FFA	free fatty acids
 UC	unesterified cholesterol
+Biochem.Glucose	Glucose
+Biochem.HDL	HDL
+Biochem.LDL	LDL
+weight	Body Weight
+BW	Body Weight
+sex	Sex
 LDL_plus_VLDL	LDL
 VLDL+LDL	LDL
 Phospholipids (liver)	phospholipids (liver)
