@@ -69,8 +69,6 @@ def write_ordered_clinical(args, lines_to_write):
         iid = splits[1]  # iid is a unique identifier in this data w/o fid
         if iid in lines_to_write:
           outfile.write(lines_to_write[iid])
-        else:
-          print(iid)
 
 
 def preprocess_traits(args, pheno_map):

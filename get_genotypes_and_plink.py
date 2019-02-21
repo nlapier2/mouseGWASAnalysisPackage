@@ -23,8 +23,8 @@ def parseargs():    # handle user arguments
     help = 'Filter variants missing above this rate. Generally, do not modify.')
   parser.add_argument('--maf', default='0.05',
     help = 'Minor allele freq. filter, default 0.05. Generally, do not modify.')
-  parser.add_argument('--no_sex_chromosomes', action='store_true',
-    help = 'Ignore sex chromosomes.')
+  parser.add_argument('--include_sex_chromosomes', action='store_true',
+    help = 'Include sex chromosomes.')
   parser.add_argument('--plink_basename', default='AUTO',
     help = 'Base name of plink output.')
   args = parser.parse_args()
@@ -95,7 +95,7 @@ def write_tped(args, fid_iid, outpath):
       genocols = [header.index(pair[0]) for pair in fid_iid]
       for line in genofile:
         splits = line.strip().split('\t')
-        if args.no_sex_chromosomes and splits[0] in ['X', 'Y']:
+        if not args.include_sex_chromosomes and splits[0] in ['X', 'Y']:
           continue
         genos = [splits[col] for col in genocols]
         outfile.write('\t'.join(splits[:4]) + '\t' +
@@ -122,7 +122,6 @@ def main():
     if len(splits) > 1:  # clinical report not in current dir
       clinical_dir = '/'.join(splits[:-1]) + '/'
     args.plink_basename = clinical_dir + 'plink12'
-
   if '/' not in args.plink_basename:
     outpath = './'
   else:
