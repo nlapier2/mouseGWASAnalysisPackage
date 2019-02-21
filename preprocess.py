@@ -17,12 +17,12 @@ import argparse, glob, subprocess, sys
 
 
 def parseargs():    # handle user arguments
-  parser = argparse.ArgumentParser(description="Prepare SQL clincal trait" +
-        " and QTL files for further processing and pylmm analysis.")
+  parser = argparse.ArgumentParser(description="Prepare clincal trait" +
+        " files for further processing and pylmm analysis.")
   parser.add_argument('--clinical', required = True,
     help = 'Clinitical trait tsv file.')
-  parser.add_argument('--qtls', default = 'NONE',
-    help = 'DEPRECATED. Clinitical QTLs tsv file.')
+  parser.add_argument('--heterogeneous_genotypes', default = 'NONE',
+    help = 'genotypes folder for heterogeneous stock mice (if using them).')
   parser.add_argument('--outname', default='AUTO', help = 'Output file name.')
   parser.add_argument('--pheno_map',
     default = '/u/home/n/nlapier2/mousedata/mouseGWASAnalysisPackage/pheno_map.txt',
@@ -53,19 +53,24 @@ def read_pheno_map(mapfile):
   return pheno_map
 
 
-def check_trait_QTL_arg_order(args):
+def write_ordered_clinical(args, lines_to_write):
   """
-  A simple method that checks whether the args.clinical and args.qtls user
-      arguments are in the correct order.
-  Argument: args are the user arguments parsed from argparse.
-  Returns: the strings that will be the final args.clinical and args.qtls
+  Write clinical file with mice in same order as ped files when using
+    heterogeneous stock mice data.
+  Arguments:
+  -- args: the user arguments parsed by parseargs
+  -- lines_to_write: lines from clinical file to write
   """
-  with(open(args.clinical, 'r')) as infile:
-    # check if user accidentally switched QTL and traits arguments
-    if 'pvalue' in infile.readline():  # pvalue field only in QTLs file
-      return args.qtls, args.clinical  # switched order
-    else:
-      return args.clinical, args.qtls  # don't switch
+  with(open(args.outname, 'a')) as outfile:
+    with(open(args.heterogeneous_genotypes + 'chr1.Build37.data', 'r')) as ped:
+      for line in ped:
+        splits = line.split(' ')
+        # extract iid from ped line; if mouse in clinical file, write line
+        iid = splits[1]  # iid is a unique identifier in this data w/o fid
+        if iid in lines_to_write:
+          outfile.write(lines_to_write[iid])
+        else:
+          print(iid)
 
 
 def preprocess_traits(args, pheno_map):
@@ -76,6 +81,7 @@ def preprocess_traits(args, pheno_map):
   -- args: the user arguments parsed by parseargs
   -- pheno_map: the phenotype map read in by the read_pheno_map method.
   """
+  lines_to_write = {}  # used to buffer lines for reordering if heterogeneous
   with(open(args.clinical, 'r')) as traitfile:
     header = traitfile.readline().strip().split('\t')
     # remove leading non-ascii characters, replace col names using pheno_map
@@ -99,82 +105,28 @@ def preprocess_traits(args, pheno_map):
         for i in range(len(splits)):  # replace NULL with NA, for R
           if splits[i] == 'NULL':
             splits[i] = 'NA'
-        outfile.write('\t'.join(splits) + '\n')
 
-
-def preprocess_qtls(args):
-  """
-  DEPRECATED. Do not use this method unless you know what you're doing.
-  The goal of this method is to take the massive QTL files and output them in
-      a more compact form, avoiding the repetition of trait and SNP info.
-  Reformats QTLs file in a more compact transposed form with one
-      line per trait. First two columns of each line are the trait name and
-    category. Subsequent columns are SNPs, with each entry corresponding to
-    the pvalue,snp_weight,snp_odds_ratio for that SNP for the line's trait.
-  Also outputs a snp2info file that maps SNP rsID to chromosome number and
-      other info (location, LD block, etc.).
-  Argument: args are the user arguments parsed from argparse.
-  """
-  snpcols, allsnps = {}, []  # defines column for each SNP
-  trait2cat, trait_pvals = {}, {}  # maps traits to their category & pvalues
-  with(open(args.qtls, 'r')) as qtlfile:
-    with(open('preprocessed_snp2info.txt', 'w')) as snpfile:
-      with(open('preprocessed_clinical_QTL.tsv', 'w')) as outfile:
-        header = qtlfile.readline().split('\t')
-
-        # SNP file contains the third through ninth columns in the
-        #    original QTL file, which contain SNP-related info that is
-        #    unrelated to specific traits and can thus be separated out.
-        snpfile.write('\t'.join(header[2:9]) + '\n')  # snps file header
-        for line in qtlfile:
-          splits = line.strip().split('\t')
-          if len(splits) < 2:
-            break
-          trait, category, snp = splits[0:3]
-          if snp not in snpcols:
-            snpcols[snp] = len(snpcols)  # assign column to this SNP
-            allsnps.append(snp)  # maintains SNP order
-            snpfile.write('\t'.join(splits[2:9]) + '\n')
-
-          # Enter NA for all trait/SNP pairs missing p-values,
-          #    and ensure that all traits have all columns specified.
-          if trait not in trait_pvals:
-            trait_pvals[trait] = ['NA' for i in range(len(snpcols))]
-            trait2cat[trait] = category
-          elif len(trait_pvals[trait]) <= snpcols[snp]:
-            trait_pvals[trait].extend(['NA' for i in
-              range(snpcols[snp] + 1 - len(trait_pvals[trait]))])
-          trait_pvals[trait][snpcols[snp]] = ','.join(splits[-3:])
-
-        # write out the traits with their category and p-values
-        outfile.write('trait_name\ttrait_category\t' +
-          '\t'.join(allsnps) + '\n')
-        for trait in trait_pvals:
-          # Ensure that all traits have all SNP columns specified.
-          if len(trait_pvals[trait]) < len(snpcols):
-            trait_pvals[trait].extend(['NA' for i in
-              range(len(snpcols) - len(trait_pvals[trait]))])
-          outfile.write(trait + '\t' + trait2cat[trait] + '\t' +
-            '\t'.join(trait_pvals[trait]) + '\n')
+        # if using heterogeneous mice, store the lines to later write in the
+		#    same order as they appear in the ped files
+        if args.heterogeneous_genotypes != 'NONE':
+          lines_to_write[splits[mousecol]] = '\t'.join(splits) + '\n'
+        else:  # otherwise just write the lines out
+          outfile.write('\t'.join(splits) + '\n')
+  if args.heterogeneous_genotypes != 'NONE':
+    write_ordered_clinical(args, lines_to_write)
 
 
 def main():
   args = parseargs()
   if args.outname == 'AUTO':
     args.outname = 'preprocessed_clinical_traits.tsv'
-  # ensure args.clinical and args.qtls were specified in correct order
-  args.clinical, args.qtls = check_trait_QTL_arg_order(args)
+  if not args.heterogeneous_genotypes.endswith('/'):
+    args.heterogeneous_genotypes += '/'
 
   # Reads in a phenotype mapping file, uses this to replace phenotype names
   #    in the clincal traits file.
   pheno_map = read_pheno_map(args.pheno_map)
   preprocess_traits(args, pheno_map)
-
-  # DEPRECATED: performs QTL file reformatting into sparser form.
-  if args.qtls != 'NONE':
-    print('Warning: --qtls is deprecated; ' +
-      'only use if you know what you are doing.')
-    preprocess_qtls(args)
 
 
 if __name__ == '__main__':
