@@ -1,6 +1,6 @@
 # mouseGWASAnalysisPackage
 
-This is a package for leave-one-chromosome-out (LOCO) GWAS analysis of mouse clinical traits via pylmm on hoffman2. The only dependencies are numpy, sklearn and scipy, which are pylmm dependencies. These are probably already installed by default, but if you have problems you may want to run "pip install --user numpy scipy sklearn".
+This is a package for leave-one-chromosome-out (LOCO) GWAS analysis of mouse clinical traits via pylmm on hoffman2. The only dependencies are numpy, sklearn and scipy. These are probably already installed by default, but if you have problems you may want to run "pip install --user numpy scipy sklearn". NOTE: This package requires Python 3. The lines below may have to be run with "python3" instead of "python", depending on your environment.
 
 ### Quick Usage
 
@@ -15,7 +15,7 @@ This is the simplest way to run things, but it is recommended to run submit-pylm
 
 ### Pipeline Overview and Examples
 
-In general, the pipeline is to download a tab-delimited clinical traits file from the HMDP database, run preprocess.py on it, then edit and qsub submit-pylmm-analysis.sh. The latter script is really a wrapper that runs four analysis scripts: get_genotypes_and_plink.py, make_pheno_file.py, loco_kinship.py, and run_pylmm_loco.py. The user should modify the wrapper script with the specific variables they want (their preprocessed clinical traits file, trait name, and desired output directory, then qsub it. 
+In general, the pipeline is to download a tab-delimited clinical traits file from the HMDP database, run preprocess.py on it, then edit and qsub submit-pylmm-analysis.sh. The latter script is really a wrapper that runs four analysis scripts: get_genotypes_and_plink.py, make_pheno_file.py, loco_kinship.py, and run_pylmm_loco.py. The user should modify the wrapper script with the specific variables they want (their preprocessed clinical traits file, trait name, and desired output directory, then qsub it.
 
 A concrete example is shown below, analyzing the Fat_mass trait in the chow2 study with sex chromosomes included, with results sent to /my/output/directory/. When editing the submit-pylmm-analysis.sh script with vim below, assume we change clinical_traits to /my/out/dir/preprocessed_clinical_traits_chow2.tsv, trait_name to Fat_mass, output_directory to /my/out/dir/, and include_sex_chromosomes to 1.
 
@@ -31,7 +31,7 @@ The simple-analysis.py script is an even simpler wrapper that allows the user to
 python preprocessing.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv
 python simple-analysis.py --clinical /my/out/dir/preprocessed_clinical_traits_chow2.tsv --trait_name Fat_mass --output_dir /my/out/dir/
 # Check back on /my/out/dir/ in a few hours; if you see /my/out/dir/pylmm_gwas_results.txt, the job has finished running.
-``` 
+```
 
 
 Finally, users can choose to run each of the four analysis scripts individually. Here's that same example again:
@@ -106,7 +106,7 @@ Arguments:
 
 Overview: This script takes the mice from a specified clinical traits file and matches them to their genotype information using a file called all_strains.tped. This information is then output in plink format, and then plink is used to recode alleles into the numbers 0, 1 and 2, for GWAS analysis purposes. This is the first step of analysis, and importantly involves the decision of whether to include sex chromosomes or not.
 
-Example: 
+Example:
 ```
 python get_genotypes_and_plink.py --clinical /path/to/my/clinical_traits_chow2.tsv --plink_basename /my/out/dir/plink12
 ```
@@ -169,7 +169,7 @@ Not part of the analysis pipeline. Do not run this unless you know what you are 
 
 Overview: Compares p-values between SQL QTL file and pylmm results. Shows corerlations and significant hits, and makes some plots.
 
-Example: 
+Example:
 ```
 python compare-pvals.py --pylmm /my/out/dir/pylmm_gwas_results.txt --qtls /path/to/my/clinical_QTL_chow2.tsv --trait_name Fat_mass
 ```
