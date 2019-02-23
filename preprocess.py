@@ -21,8 +21,10 @@ def parseargs():    # handle user arguments
         " files for further processing and pylmm analysis.")
   parser.add_argument('--clinical', required = True,
     help = 'Clinitical trait tsv file.')
-  parser.add_argument('--heterogeneous_genotypes', default = 'NONE',
+  parser.add_argument('--heterogeneous_genotypes', default = 'NONE/',
     help = 'genotypes folder for heterogeneous stock mice (if using them).')
+  parser.add_argument('--outbred_dosages', default = 'NONE/',
+    help = 'dosages folder for outbred mice (if using them).')
   parser.add_argument('--outname', default='AUTO', help = 'Output file name.')
   parser.add_argument('--pheno_map',
     default = '/u/home/n/nlapier2/mousedata/mouseGWASAnalysisPackage/pheno_map.txt',
@@ -56,19 +58,30 @@ def read_pheno_map(mapfile):
 def write_ordered_clinical(args, lines_to_write):
   """
   Write clinical file with mice in same order as ped files when using
-    heterogeneous stock mice data.
+    heterogeneous stock mice data, or nameList files when using outbred mice.
   Arguments:
   -- args: the user arguments parsed by parseargs
   -- lines_to_write: lines from clinical file to write
   """
-  with(open(args.outname, 'a')) as outfile:
+  # extract ordered mouse names from either heterogeneous or outbred format
+  ordered_mice = []  # ordered mice identified by iid (unique for this data)
+  if args.heterogeneous_genotypes != 'NONE/':
     with(open(args.heterogeneous_genotypes + 'chr1.Build37.data', 'r')) as ped:
       for line in ped:
         splits = line.split(' ')
-        # extract iid from ped line; if mouse in clinical file, write line
-        iid = splits[1]  # iid is a unique identifier in this data w/o fid
-        if iid in lines_to_write:
-          outfile.write(lines_to_write[iid])
+        ordered_mice.append(splits[1])
+  elif args.outbred_dosages != 'NONE/':
+    with(open(args.outbred_dosages + 'chr1_nameList.tsv', 'r')) as nameList:
+      nameList.readline()  # first line is not needed
+      all_iids = nameList.readline().strip().split('\t')  # contains all iids
+      ordered_mice = ['Q_CFW-SW/' + iid.split('_recal')[0].split('_')[-1]
+        for iid in all_iids]  # format iids in same way as clinical file
+
+  # write clinical lines in order specified by ordered_mice
+  with(open(args.outname, 'a')) as outfile:
+    for iid in ordered_mice:
+      if iid in lines_to_write:
+        outfile.write(lines_to_write[iid])
 
 
 def preprocess_traits(args, pheno_map):
@@ -79,23 +92,29 @@ def preprocess_traits(args, pheno_map):
   -- args: the user arguments parsed by parseargs
   -- pheno_map: the phenotype map read in by the read_pheno_map method.
   """
+  # this code block processes the header line with fid/iid and phenotype names
   lines_to_write = {}  # used to buffer lines for reordering if heterogeneous
   with(open(args.clinical, 'r')) as traitfile:
     header = traitfile.readline().strip().split('\t')
     # remove leading non-ascii characters, replace col names using pheno_map
     header[0] = ''.join([ch for ch in header[0] if ord(ch) < 128])
+    if args.outbred_dosages != 'NONE/':
+      header = ['Strain'] + header
     header = [i if i not in pheno_map else pheno_map[i] for i in header]
     # Determine columns that define mouse number and strain. If default
     #    phenotype map file is used, columns guaranteed to have these names.
-    mousecol, straincol=header.index('mouse_number'), header.index('Strain')
+    mousecol, straincol = header.index('mouse_number'), header.index('Strain')
 
+    # this code block formats & replaces phenotype names according to pheno_map
     with(open(args.outname, 'w')) as outfile:
       outfile.write('\t'.join(header) + '\n')
       for line in traitfile:
         splits = line.strip().split('\t')
         if len(splits) < 2:  # trailing line at end of file
           break
-        #splits[straincol] = splits[straincol].replace('/', '.')
+        # no mouse_number in outbred; make same as strain name
+        if args.outbred_dosages != 'NONE/':
+          splits = [splits[mousecol-1]] + splits
         splits[straincol] = splits[straincol].replace(' ', '_')
         # replace strain name using pheno_map, if necessary
         if splits[straincol] in pheno_map:
@@ -104,13 +123,14 @@ def preprocess_traits(args, pheno_map):
           if splits[i] == 'NULL':
             splits[i] = 'NA'
 
-        # if using heterogeneous mice, store the lines to later write in the
-		#    same order as they appear in the ped files
-        if args.heterogeneous_genotypes != 'NONE':
+        # this code block deals with writing the output
+        # if using heterogeneous or outbred mice, store the lines to later write
+		#    in the same order as they appear in the ped or nameList files
+        if args.heterogeneous_genotypes != 'NONE/' or args.outbred_dosages != 'NONE/':
           lines_to_write[splits[mousecol]] = '\t'.join(splits) + '\n'
         else:  # otherwise just write the lines out
           outfile.write('\t'.join(splits) + '\n')
-  if args.heterogeneous_genotypes != 'NONE':
+  if args.heterogeneous_genotypes != 'NONE/' or args.outbred_dosages != 'NONE/':
     write_ordered_clinical(args, lines_to_write)
 
 
@@ -120,6 +140,8 @@ def main():
     args.outname = 'preprocessed_clinical_traits.tsv'
   if not args.heterogeneous_genotypes.endswith('/'):
     args.heterogeneous_genotypes += '/'
+  if not args.outbred_dosages.endswith('/'):
+    args.outbred_dosages += '/'
 
   # Reads in a phenotype mapping file, uses this to replace phenotype names
   #    in the clincal traits file.
