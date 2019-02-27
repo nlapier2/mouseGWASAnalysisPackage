@@ -20,7 +20,7 @@ In general, the pipeline is to download a tab-delimited clinical traits file fro
 A concrete example is shown below, analyzing the Fat_mass trait in the chow2 study with sex chromosomes included, with results sent to /my/output/directory/. When editing the submit-pylmm-analysis.sh script with vim below, assume we change clinical_traits to /my/out/dir/preprocessed_clinical_traits_chow2.tsv, trait_name to Fat_mass, output_directory to /my/out/dir/, and include_sex_chromosomes to 1.
 
 ```
-python preprocessing.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv
+python preprocess.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv
 vim submit-pylmm-analysis.sh  # change variables as described above
 qsub submit-pylmm-analysis.sh
 ```
@@ -28,7 +28,7 @@ qsub submit-pylmm-analysis.sh
 The simple-analysis.py script is an even simpler wrapper that allows the user to define a few options via the command line; the script then writes and submits the bash script for the user and tells them where the outputs will be. Below is the previous example except using the simple-analysis.py wrapper.
 
 ```
-python preprocessing.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv
+python preprocess.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv
 python simple-analysis.py --clinical /my/out/dir/preprocessed_clinical_traits_chow2.tsv --trait_name Fat_mass --output_dir /my/out/dir/
 # Check back on /my/out/dir/ in a few hours; if you see /my/out/dir/pylmm_gwas_results.txt, the job has finished running.
 ```
@@ -37,7 +37,7 @@ python simple-analysis.py --clinical /my/out/dir/preprocessed_clinical_traits_ch
 Finally, users can choose to run each of the four analysis scripts individually. Here's that same example again:
 
 ```
-python preprocessing.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv
+python preprocess.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv
 python get_genotypes_and_plink.py --clinical /path/to/my/clinical_traits_chow2.tsv --plink_basename /my/out/dir/plink12
 python make_pheno_file.py --clinical /path/to/my/clinical_traits_chow2.tsv --target Fat_mass --tfam /my/out/dir/plink12.tfam --output /my/out/dir/pheno_file_pylmm.txt
 python loco_kinship.py --plink /my/out/dir/plink12 --outdir /my/out/dir/loco/
@@ -49,13 +49,13 @@ The following section describes each script in more detail. For documentation of
 
 ### Script Details
 
-#### preprocessing.py
+#### preprocess.py
 
 Overview: This script preprocesses a given clinical traits file, and should always be run upon downloading such a file from the SQL server. This file must be tab-delimited (see the wiki for more information). The main idea is that phenotype and strain names will be standardized between all studies. This is done by reading in a manually curated mapping file (which we call pheno_map here) that maps names seen in the clinical trait files to the names we want to have. Some other minor tweaks are made. The output is a new clinical_traits file with all these tweaks and substitutions. This script is not considered "analysis" and is thus not included in the submit-pylmm-analysis.sh or simple-analysis.py wrapper scripts.
 
 Example:
 ```
-python preprocessing.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv
+python preprocess.py --clinical /path/to/my/clinical_traits_chow2.tsv --outname /my/out/dir/preprocessed_clinical_traits_chow2.tsv
 ```
 
 Arguments:
