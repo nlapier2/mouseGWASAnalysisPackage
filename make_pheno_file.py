@@ -89,7 +89,8 @@ def parse_clinical_file(args, tfams):
       splits = line.strip().split('\t')
       if len(splits) < 2:
         break
-      if splits[straincol] not in tfams or splits[mousecol] not in tfams[splits[straincol]]:
+      if tfams != {} and (splits[straincol] not in tfams
+	      or splits[mousecol] not in tfams[splits[straincol]]):
         continue  # this mouse not present in the tfam file
       mouse_fid_iid = splits[straincol] + ' ' + splits[mousecol]  # family & indiv. ID
       # grab target phenotype and other phenotyes in this line
