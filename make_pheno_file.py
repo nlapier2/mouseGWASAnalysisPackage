@@ -183,7 +183,7 @@ def normalize_and_write(args, mouse2pheno, target_pheno):
   if args.transform == 'boxcox':
     #stats.boxcox wants a column vector, so here's a column vector
     array = np.array(target_pheno)
-    transform = stats.boxcox(array, args.lmbda)
+    transform = stats.boxcox(array, float(args.lmbda))
     transform = transform.tolist()
     #target_pheno has no NAs so the loc of values don't necessarily map exactly
     targ_loc = 0
