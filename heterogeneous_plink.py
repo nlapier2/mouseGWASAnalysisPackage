@@ -72,7 +72,7 @@ def reformat_map(args, marker_names, outpath):
         if splits[1] == 'X':
           if not args.include_sex_chromosomes:
             continue
-          splits[1] == '20'  # other files refer to this as chromosome 20
+          splits[1] = '20'  # other files refer to this as chromosome 20
         # two layer dict storing line to print for a given snp in a given chrom.
         chrom_data['chr'+splits[1]][splits[0]] = '\t'.join(
             [splits[1], splits[0], '0', splits[2]]) + '\n'

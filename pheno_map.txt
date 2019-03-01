@@ -6,20 +6,27 @@
 LYM	LYMPH
 Haem.LYMabs	LYMPH
 LYM %	LYMPH %
+Haem.LYM_percent	LYMPH %
 LYM (10^3/µl)	LYMPH
 MONO (10^3/µl)	MONO
 Haem.MONabs	MONO
+Haem.MONO_percent	MONO %
 GRAN (10^3/µl)	GRAN
 Insulin pg/ml	Insulin
 Biochem.Triglycerides	triglycerides
+Bioch.Triglycerides	triglycerides
 Trigly.	triglycerides
 Tot chol.	total_cholesterol
 Biochem.Tot.Cholesterol	total cholesterol
+Bioch.Tot.Cholesterol	total cholesterol
 FFA	free fatty acids
 UC	unesterified cholesterol
 Biochem.Glucose	Glucose
+Bioch.Glucose	Glucose
 Biochem.HDL	HDL
+Bioch.HDL	HDL
 Biochem.LDL	LDL
+Bioch.LDL	LDL
 weight	Body Weight
 BW	Body Weight
 sex	Sex

@@ -55,13 +55,15 @@ def read_pheno_map(mapfile):
   return pheno_map
 
 
-def write_ordered_clinical(args, lines_to_write):
+def write_ordered_clinical(args, lines_to_write, straincol):
   """
   Write clinical file with mice in same order as ped files when using
     heterogeneous stock mice data, or nameList files when using outbred mice.
+  Also makes heterogeneous FIDs consistent between ped files and pheno file.
   Arguments:
   -- args: the user arguments parsed by parseargs
   -- lines_to_write: lines from clinical file to write
+  -- straincol: Column with strain (FID) field; make consistent
   """
   # extract ordered mouse names from either heterogeneous or outbred format
   ordered_mice = []  # ordered mice identified by iid (unique for this data)
@@ -69,19 +71,21 @@ def write_ordered_clinical(args, lines_to_write):
     with(open(args.heterogeneous_genotypes + 'chr1.Build37.data', 'r')) as ped:
       for line in ped:
         splits = line.split(' ')
-        ordered_mice.append(splits[1])
+        ordered_mice.append([splits[0], splits[1]])
   elif args.outbred_dosages != 'NONE/':
     with(open(args.outbred_dosages + 'chr1_nameList.tsv', 'r')) as nameList:
       nameList.readline()  # first line is not needed
       all_iids = nameList.readline().strip().split('\t')  # contains all iids
       ordered_mice = ['Q_CFW-SW/' + iid.split('_recal')[0].split('_')[-1]
         for iid in all_iids]  # format iids in same way as clinical file
+      ordered_mice = [[i, i] for i in ordered_mice]  # create fid/iid pairs
 
   # write clinical lines in order specified by ordered_mice
   with(open(args.outname, 'a')) as outfile:
-    for iid in ordered_mice:
+    for fid, iid in ordered_mice:
       if iid in lines_to_write:
-        outfile.write(lines_to_write[iid])
+        lines_to_write[iid][straincol] = fid  # strain set to fid
+        outfile.write('\t'.join(lines_to_write[iid]) + '\n')
 
 
 def preprocess_traits(args, pheno_map):
@@ -127,11 +131,11 @@ def preprocess_traits(args, pheno_map):
         # if using heterogeneous or outbred mice, store the lines to later write
 		#    in the same order as they appear in the ped or nameList files
         if args.heterogeneous_genotypes != 'NONE/' or args.outbred_dosages != 'NONE/':
-          lines_to_write[splits[mousecol]] = '\t'.join(splits) + '\n'
+          lines_to_write[splits[mousecol]] = splits  # '\t'.join(splits) + '\n'
         else:  # otherwise just write the lines out
           outfile.write('\t'.join(splits) + '\n')
   if args.heterogeneous_genotypes != 'NONE/' or args.outbred_dosages != 'NONE/':
-    write_ordered_clinical(args, lines_to_write)
+    write_ordered_clinical(args, lines_to_write, straincol)
 
 
 def main():
