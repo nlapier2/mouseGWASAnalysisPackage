@@ -25,16 +25,22 @@ def parseargs():    # handle user arguments
 		help = 'Location of all_strains.tped. Default is known location.')
 	parser.add_argument('--outname', default = 'manhattans.png',
 		help = 'Where to save Manhattan plots figure.')
+	parser.add_argument('--plink12', action = 'store_true',
+		help = 'Use if this tped has been put into plink12 format.')
 	args = parser.parse_args()
 	return args
 
 
-def parse_allstrains(all_strains_loc):
+def parse_allstrains(all_strains_loc, is_plink12):
 	jax2loc, snpsPerChrom, mm10order = {}, {}, {}
 	with(open(all_strains_loc, 'r')) as infile:
-		infile.readline()  # skip header
+		if not is_plink12:
+			infile.readline()  # skip header
 		for line in infile:
-			splits = line.split('\t')
+			if not is_plink12:
+				splits = line[:200].split('\t')
+			else:
+				splits = line[:200].split(' ')
 			jax, chromosome, mm10 = splits[1], splits[0], int(splits[3])
 			if chromosome == 'X':
 				chromosome = 20
@@ -142,7 +148,7 @@ def main():
 		dir_studies = sorted(glob.glob(args.pylmm[0]+'*'))
 		args.pylmm = dir_studies + args.pylmm[1:]
 
-	jax2loc, snpsPerChrom, mm10order = parse_allstrains(args.all_strains)
+	jax2loc, snpsPerChrom, mm10order = parse_allstrains(args.all_strains, args.plink12)
 	study_pvals = []
 	for study in args.pylmm:
 		study_pvals.append(parse_pylmm(study))  # get pylmm SNPs to pvalues
