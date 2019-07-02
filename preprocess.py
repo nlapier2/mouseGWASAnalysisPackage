@@ -21,11 +21,15 @@ def parseargs():    # handle user arguments
         " files for further processing and pylmm analysis.")
   parser.add_argument('--clinical', required = True,
     help = 'Clinitical trait tsv file.')
+  parser.add_argument('--csv', action = 'store_true',
+    help = 'Use this flag if the file is csv instead of tsv.')
   parser.add_argument('--heterogeneous_genotypes', default = 'NONE/',
     help = 'genotypes folder for heterogeneous stock mice (if using them).')
   parser.add_argument('--outbred_dosages', default = 'NONE/',
     help = 'dosages folder for outbred mice (if using them).')
   parser.add_argument('--outname', default='AUTO', help = 'Output file name.')
+  parser.add_argument('--no_strains', action = 'store_true',
+    help = 'Use if mice are only identified by ID (no listed strain/family).')
   parser.add_argument('--pheno_map',
     default = '/u/home/n/nlapier2/mousedata/mouseGWASAnalysisPackage/pheno_map.txt',
     help = 'Specify phenotype map file to read. Default to known location.')
@@ -96,13 +100,19 @@ def preprocess_traits(args, pheno_map):
   -- args: the user arguments parsed by parseargs
   -- pheno_map: the phenotype map read in by the read_pheno_map method.
   """
+  delim = '\t'  # input file delimiter is tab by default; user can specify csv
+  if args.csv:
+    delim = ','
   # this code block processes the header line with fid/iid and phenotype names
   lines_to_write = {}  # used to buffer lines for reordering if heterogeneous
   with(open(args.clinical, 'r')) as traitfile:
-    header = traitfile.readline().strip().split('\t')
+    header = traitfile.readline().strip().split(delim)
     # remove leading non-ascii characters, replace col names using pheno_map
     header[0] = ''.join([ch for ch in header[0] if ord(ch) < 128])
-    if args.outbred_dosages != 'NONE/':
+    discard_col = -1
+    if 'discard' in header:
+      discard_col = header.index('discard')
+    if args.outbred_dosages != 'NONE/' or args.no_strains:
       header = ['Strain'] + header
     header = [i if i not in pheno_map else pheno_map[i] for i in header]
     # Determine columns that define mouse number and strain. If default
@@ -113,11 +123,13 @@ def preprocess_traits(args, pheno_map):
     with(open(args.outname, 'w')) as outfile:
       outfile.write('\t'.join(header) + '\n')
       for line in traitfile:
-        splits = line.strip().split('\t')
+        splits = line.strip().split(delim)
         if len(splits) < 2:  # trailing line at end of file
           break
+        if discard_col != -1 and splits[discard_col] == 'yes':
+          continue
         # no mouse_number in outbred; make same as strain name
-        if args.outbred_dosages != 'NONE/':
+        if args.outbred_dosages != 'NONE/' or args.no_strains:
           splits = [splits[mousecol-1]] + splits
         splits[straincol] = splits[straincol].replace(' ', '_')
         # replace strain name using pheno_map, if necessary

@@ -36,7 +36,10 @@ Phospholipids (liver)	phospholipids (liver)
 Total cholesterol (liver)	total cholesterol (liver)
 Triglycerides (liver)	triglycerides (liver)
 Unesterified cholesterol (liver)	unesterified cholesterol (liver)
+strain	Strain
 family	Strain
+id	mouse_number
+animal_id	mouse_number
 Mouse ID	mouse_number
 Animal_ID	mouse_number
 SUBJECT.NAME	mouse_number
