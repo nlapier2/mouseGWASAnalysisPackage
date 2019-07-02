@@ -28,8 +28,8 @@ def parseargs():    # handle user arguments
   parser.add_argument('--outbred_dosages', default = 'NONE/',
     help = 'dosages folder for outbred mice (if using them).')
   parser.add_argument('--outname', default='AUTO', help = 'Output file name.')
-  parser.add_argument('--no_strains', action = 'store_true',
-    help = 'Use if mice are only identified by ID (no listed strain/family).')
+  parser.add_argument('--palmer_geno', default = 'NONE',
+    help = 'geno.txt file location if using Palmer data.')
   parser.add_argument('--pheno_map',
     default = '/u/home/n/nlapier2/mousedata/mouseGWASAnalysisPackage/pheno_map.txt',
     help = 'Specify phenotype map file to read. Default to known location.')
@@ -59,6 +59,22 @@ def read_pheno_map(mapfile):
   return pheno_map
 
 
+def get_palmer_mice(geno):
+  """
+  For Abe Palmer's data, ensures that mice that are not genotyped are not
+  included in the preprocessed phenotype file.
+  Argument: Location of the geno.txt file from the Palmer dataset.
+  Returns: list of the mouse IDs for all genotyped mice
+  """
+  mouse_ids = []
+  with(open(geno)) as infile:
+    infile.readline()  # skip header
+    for line in infile:
+      id = line[:100].split()[0]
+      mouse_ids.append(id)
+  return mouse_ids
+
+
 def write_ordered_clinical(args, lines_to_write, straincol):
   """
   Write clinical file with mice in same order as ped files when using
@@ -83,6 +99,9 @@ def write_ordered_clinical(args, lines_to_write, straincol):
       ordered_mice = ['Q_CFW-SW/' + iid.split('_recal')[0].split('_')[-1]
         for iid in all_iids]  # format iids in same way as clinical file
       ordered_mice = [[i, i] for i in ordered_mice]  # create fid/iid pairs
+  elif args.palmer_geno != 'NONE':
+    ordered_mice = get_palmer_mice(args.palmer_geno)
+    ordered_mice = [[i, i] for i in ordered_mice]  # create fid/iid pairs
 
   # write clinical lines in order specified by ordered_mice
   with(open(args.outname, 'a')) as outfile:
@@ -103,6 +122,8 @@ def preprocess_traits(args, pheno_map):
   delim = '\t'  # input file delimiter is tab by default; user can specify csv
   if args.csv:
     delim = ','
+  if args.palmer_geno != 'NONE':  # for palmer data, don't include non-genotyped mice
+    mice_to_write = get_palmer_mice(args.palmer_geno)
   # this code block processes the header line with fid/iid and phenotype names
   lines_to_write = {}  # used to buffer lines for reordering if heterogeneous
   with(open(args.clinical, 'r')) as traitfile:
@@ -112,7 +133,7 @@ def preprocess_traits(args, pheno_map):
     discard_col = -1
     if 'discard' in header:
       discard_col = header.index('discard')
-    if args.outbred_dosages != 'NONE/' or args.no_strains:
+    if args.outbred_dosages != 'NONE/' or args.palmer_geno != 'NONE':
       header = ['Strain'] + header
     header = [i if i not in pheno_map else pheno_map[i] for i in header]
     # Determine columns that define mouse number and strain. If default
@@ -128,10 +149,12 @@ def preprocess_traits(args, pheno_map):
           break
         if discard_col != -1 and splits[discard_col] == 'yes':
           continue
+        if args.palmer_geno != 'NONE' and splits[mousecol-1] not in mice_to_write:
+          continue
         if splits[mousecol] == '0':  # '0' is not allowed by plink for the IID
           splits[mousecol] = '00'
         # no mouse_number in outbred; make same as strain name
-        if args.outbred_dosages != 'NONE/' or args.no_strains:
+        if args.outbred_dosages != 'NONE/' or args.palmer_geno != 'NONE':
           splits = [splits[mousecol-1]] + splits
         splits[straincol] = splits[straincol].replace(' ', '_')
         # replace strain name using pheno_map, if necessary
@@ -144,11 +167,11 @@ def preprocess_traits(args, pheno_map):
         # this code block deals with writing the output
         # if using heterogeneous or outbred mice, store the lines to later write
 		#    in the same order as they appear in the ped or nameList files
-        if args.heterogeneous_genotypes != 'NONE/' or args.outbred_dosages != 'NONE/':
+        if args.heterogeneous_genotypes != 'NONE/' or args.outbred_dosages != 'NONE/' or args.palmer_geno != 'NONE':
           lines_to_write[splits[mousecol]] = splits  # '\t'.join(splits) + '\n'
         else:  # otherwise just write the lines out
           outfile.write('\t'.join(splits) + '\n')
-  if args.heterogeneous_genotypes != 'NONE/' or args.outbred_dosages != 'NONE/':
+  if args.heterogeneous_genotypes != 'NONE/' or args.outbred_dosages != 'NONE/' or args.palmer_geno != 'NONE':
     write_ordered_clinical(args, lines_to_write, straincol)
 
 
