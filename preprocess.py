@@ -128,6 +128,8 @@ def preprocess_traits(args, pheno_map):
           break
         if discard_col != -1 and splits[discard_col] == 'yes':
           continue
+        if splits[mousecol] == '0':  # '0' is not allowed by plink for the IID
+          splits[mousecol] = '00'
         # no mouse_number in outbred; make same as strain name
         if args.outbred_dosages != 'NONE/' or args.no_strains:
           splits = [splits[mousecol-1]] + splits
