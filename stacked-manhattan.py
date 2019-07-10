@@ -20,9 +20,9 @@ def parseargs():    # handle user arguments
 		help = 'List of pylmm output file(s), space-separated if multiple.')
 	parser.add_argument('--dir', action = 'store_true',
 		help = 'Use if first item in --pylmm list is a directory.')
-	parser.add_argument('--all_strains',
+	parser.add_argument('--tped',
 		default = '/u/home/n/nlapier2/mousedata/all_strains.tped',
-		help = 'Location of all_strains.tped. Default is known location.')
+		help = 'Location of tped file. Default is known all_strains location.')
 	parser.add_argument('--outname', default = 'manhattans.png',
 		help = 'Where to save Manhattan plots figure.')
 	parser.add_argument('--plink12', action = 'store_true',
@@ -31,9 +31,9 @@ def parseargs():    # handle user arguments
 	return args
 
 
-def parse_allstrains(all_strains_loc, is_plink12):
+def parse_allstrains(tped_loc, is_plink12):
 	jax2loc, snpsPerChrom, mm10order = {}, {}, {}
-	with(open(all_strains_loc, 'r')) as infile:
+	with(open(tped_loc, 'r')) as infile:
 		if not is_plink12:
 			infile.readline()  # skip header
 		for line in infile:
@@ -148,7 +148,7 @@ def main():
 		dir_studies = sorted(glob.glob(args.pylmm[0]+'*'))
 		args.pylmm = dir_studies + args.pylmm[1:]
 
-	jax2loc, snpsPerChrom, mm10order = parse_allstrains(args.all_strains, args.plink12)
+	jax2loc, snpsPerChrom, mm10order = parse_allstrains(args.tped, args.plink12)
 	study_pvals = []
 	for study in args.pylmm:
 		study_pvals.append(parse_pylmm(study))  # get pylmm SNPs to pvalues

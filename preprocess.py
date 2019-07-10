@@ -145,6 +145,7 @@ def preprocess_traits(args, pheno_map):
       outfile.write('\t'.join(header) + '\n')
       for line in traitfile:
         splits = line.strip().split(delim)
+        splits = [i if i != '' else 'NA' for i in splits]
         if len(splits) < 2:  # trailing line at end of file
           break
         if discard_col != -1 and splits[discard_col] == 'yes':

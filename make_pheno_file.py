@@ -34,6 +34,8 @@ def parseargs():    # handle user arguments
     help = 'EXACT name of target trait to study.')
   parser.add_argument('--tfam', required=True,
     help = 'Plink tfam file; exclude mice not in it.')
+  parser.add_argument('--default_na', action='store_true',
+  	help = 'Convert value to NA (missing) if unable to convert to float.')
   parser.add_argument('--output', default='pheno_file_pylmm.txt',
     help = 'Name of output file.')
   parser.add_argument('--transform', default='standardize',
@@ -96,7 +98,13 @@ def parse_clinical_file(args, tfams):
       # grab target phenotype and other phenotyes in this line
       tgt = splits[targetcol]
       if tgt != 'NA':
-        tgt = float(tgt)
+        if args.default_na:
+          try:
+            tgt = float(tgt)
+          except:
+            tgt = 'NA'
+        else:
+          tgt = float(tgt)
       others = [splits[i] for i in range(len(splits))
         if i not in [straincol, mousecol, targetcol]]
       #others = splits[2 : targetcol] + splits[targetcol + 1 : ]
