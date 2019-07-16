@@ -88,7 +88,9 @@ def parse_clinical_file(args, tfams):
     targetcol = header.index(args.target)  # find column of target phenotype
     mousecol, straincol = header.index('mouse_number'), header.index('Strain')
     for line in infile:
-      splits = line.strip().split('\t')
+      #splits = line.strip(' ').split('\t')
+      splits = line.split('\t')
+      splits[-1] = splits[-1].strip()
       if len(splits) < 2:
         break
       if tfams != {} and (splits[straincol] not in tfams
