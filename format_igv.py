@@ -74,6 +74,10 @@ def write_igv(output, ordered_snps):  # write out ordered snp info in igv format
   with(open(output, 'w')) as outfile:
     outfile.write('SNP\tCHR\tBP\tP\n')  # header line
     for chrom in range(1, len(ordered_snps) + 1):
+      if chrom == 20 and 'X' in ordered_snps:
+        chrom = 'X'
+      elif chrom == 21 and 'Y' in ordered_snps:
+        chrom = 'Y'
       chrom_snps = ordered_snps[str(chrom)]
       for snp_info in chrom_snps:
         rsid_snp_id, snp_chr, snp_bp_mm10, p_val = snp_info
