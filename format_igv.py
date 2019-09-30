@@ -6,9 +6,13 @@ def parseargs():    # handle user arguments
         " and create a new file with those results in IGV format.")
   parser.add_argument('--pylmm', required = True, help = 'PyLMM results file.')
   parser.add_argument('--output', required = True, help = 'Output file name.')
-  parser.add_argument('--all_strains',
+  parser.add_argument('--no_translate', action = 'store_true',
+    help = 'Use if SNPs are already rsid.')
+  parser.add_argument('--tped',
     default = '/u/home/n/nlapier2/mousedata/all_strains.tped',
-    help= 'Location of all_strains.tped file. Default is a known location.')
+    help= 'Location of tped file. Default is known all_strains.tped filepath.')
+  parser.add_argument('--plink12_formatted', action = 'store_true',
+    help = 'Use this flag if --tped is plink12 format.')
   parser.add_argument('--rsid2jax',
     default = '/u/home/n/nlapier2/mousedata/rsid2jax.txt',
     help= 'Location of rsid2jax.txt file. Default is a known location.')
@@ -16,21 +20,36 @@ def parseargs():    # handle user arguments
   return args
 
 
-def parse_pylmm(pylmm):  # map snp names to p-vals w/ pylmm results
+def parse_pylmm(pylmm, jax2rsid, no_translate):  # map snp names to p-vals w/ pylmm results
   snp2info = {}
   with(open(pylmm, 'r')) as infile:
     infile.readline()  # skip header
     for line in infile:
       splits = line.strip().split('\t')  # [snp_id, beta, beta_sd, f_stat, p_value]
-      snp2info[splits[0]] = [splits[-1]]
+      if not no_translate:
+        if splits[0] not in jax2rsid:
+          continue
+        snp2info[jax2rsid[splits[0]]] = [splits[-1]]
+      else:
+        snp2info[splits[0]] = [splits[-1]]
   return snp2info
 
 
-def parse_tped(all_strains, snp2info):  # add chr and bp to snp2info via tped
-  with(open(all_strains, 'r')) as infile:
-    infile.readline()  # skip header
+# add chr and bp to snp2info via tped
+def parse_tped(tped, jax2rsid, snp2info, plink12_formatted, no_translate):
+  if plink12_formatted:
+    delim = ' '
+  else:
+    delim = '\t'
+  with(open(tped, 'r')) as infile:
+    if not plink12_formatted:
+      infile.readline()  # skip header
     for line in infile:
-      splits = line.strip().split('\t')  # [snp_chr, snp_id, centimorgans, snp_bp_mm10, ...]
+      splits = line.strip().split(delim)  # [snp_chr, snp_id, centimorgans, snp_bp_mm10, ...]
+      if not no_translate:  # all_strains has to be converted to rsid
+        if splits[1] not in jax2rsid:
+          continue
+        splits[1] = jax2rsid[splits[1]]
       if splits[1] in snp2info:
         snp2info[splits[1]].extend([splits[0], splits[3]])
   return snp2info
@@ -60,7 +79,7 @@ def get_ordered_snps(snp2info, jax2rsid):
   ordered_snps = {}
   for snp_id in snp2info:
     p_val, snp_chr, snp_bp_mm10 = snp2info[snp_id]
-    rsid_snp_id = jax2rsid[snp_id]
+    rsid_snp_id = snp_id #jax2rsid[snp_id]
     if snp_chr not in ordered_snps:
       ordered_snps[snp_chr] = [[rsid_snp_id, snp_chr, int(snp_bp_mm10), p_val]]
     else:
@@ -88,9 +107,9 @@ def write_igv(output, ordered_snps):  # write out ordered snp info in igv format
 
 def main():
   args = parseargs()
-  snp2info = parse_pylmm(args.pylmm)  # map snp names to p-vals w/ pylmm results
-  snp2info = parse_tped(args.all_strains, snp2info)  # add chr and bp from tped
   jax2rsid = parse_rsid2jax(args.rsid2jax)  # allows conversion from jax to rsid
+  snp2info = parse_pylmm(args.pylmm, jax2rsid, args.no_translate)  # map snp names to p-vals
+  snp2info = parse_tped(args.tped, jax2rsid, snp2info, args.plink12_formatted, args.no_translate)
   ordered_snps = get_ordered_snps(snp2info, jax2rsid)  # order by chrom then loc
   write_igv(args.output, ordered_snps)  # write out in igv format
 
